@@ -44,11 +44,20 @@
     background-color: grey
     position: relative
     padding: 10px
-    canvas
-        display: block
+    height: 720px
+    .canvas-container
+      position: absolute
+      left: calc(50% - 352px)
+      canvas
+          display: block
+          position: absolute
+          background-repeat: repeat
+      .canvas-overlay
+        z-index: 9
+      .canvas-drawing 
+        z-index: 1
         background-image: url('./img/canvas_bg.png')
-        background-repeat: repeat
-        margin: auto
+
 
 
 .preview
