@@ -19,13 +19,22 @@ module.exports = {
         },
       },
       {
-        test: /\.sass$/,
+        test: /\.(css|sass)$/,
         use: ['style-loader', 'css-loader', 'sass-loader'],
       },
-    //   {
-    //     test: /\.(woff|woff2|eot|ttf|otf)$/,
-    //     use: ['file-loader'],
-    //   },
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/,
+        use: ['file-loader'],
+      },
+      {
+        test: /\.svg$/,
+        loader: 'svg-inline-loader',
+      },
+      {
+        test: /\.(gif|png|jpe?g)$/,
+        loader: ['file-loader'],
+      }
+
     ],
   },
   plugins: [new HtmlWebpackPlugin({
