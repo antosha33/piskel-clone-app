@@ -9,18 +9,30 @@
 <body>
     <div class="container">
         <div class="menu">
-            <div class="tools">
-                <div class="pen"></div>
-                <div class="color-select"></div>
-                <div class="paint-bucket"></div>
-                <div class="eraser"></div>
+            <div class="tools" id="tools">
+                <div class="tool-size" id="tool-size">
+                    <div data="one" class="size one active"></div>
+                    <div data="two" class="size two"></div>
+                    <div data="three" class="size three"></div>
+                    <div data="four" class="size four"></div>
+                </div>
+                <div class="pen active" id="pen"></div>
+                <div class="color-select" id="color-select"></div>
+                <div class="paint-bucket" id="paint-bucket"></div>
+                <div class="eraser" id="eraser"></div>
+                <div class="colors">
+                    <div class="colors-container">
+                            <div class="primary"></div>
+                            <div class="secondary"></div>
+                    </div>
+                </div>
             </div>
             <div class="frames">Фреймы</div>
         </div>
         <div class="palette">
             <div class="canvas-container" id="canvas-container">
+                <div class="cursor" id="cursor"></div>
                 <canvas id="canvas-overlay" class="canvas-overlay" height = "704px" width="704px"></canvas>
-                <canvas id="canvas-drawing" class="canvas-drawing" height = "704px" width="704px"></canvas>
             </div>
           </div>
         <div class="preview">Превью</div>

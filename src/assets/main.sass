@@ -27,7 +27,10 @@
     .eraser
         background-image: url('./img/icons.png')
         background-position: -46px -228px
-
+    .active
+        background-color: lighten(#666, 30%)
+        border: 2px solid
+        border-color: yellow
 .tools > *
     background-color: lighten(#666, 10%)
     width: 46px
@@ -48,13 +51,13 @@
     .canvas-container
       position: absolute
       left: calc(50% - 352px)
+      width: 704px
+      height: 704px
       canvas
           display: block
           position: absolute
           background-repeat: repeat
       .canvas-overlay
-        z-index: 9
-      .canvas-drawing 
         z-index: 1
         background-image: url('./img/canvas_bg.png')
 
@@ -62,3 +65,87 @@
 
 .preview
     background-color: #666
+
+.cursor
+    display: none
+    z-index: 10
+    position: absolute
+    width: 24px
+    height: 24px
+    background-color: rgba(156, 156, 156, 0.2)
+    left: 0px
+    top: 0px
+    
+.tool-size
+    grid-column-start: 1
+    grid-column-end: 3
+    display: grid
+    grid-template-columns: repeat(4, 1fr)
+    height: 25px
+    width: 92px
+    justify-items: center
+    background-color: #666
+    & > *
+        height: 10px
+        width: 10px
+        background-color: lighten(#666, 20%)
+        grid-gap: 5px
+        align-self: center
+        border: 1px solid
+        border-color: lighten(#666, 20%)
+    .two
+        height: 12px
+        width: 12px
+    .three
+        height: 14px
+        width: 14px 
+    .four
+        height: 16px
+        width: 16px           
+    .active
+        background-color: lighten(#666, 40%)
+        border-color: yellow 
+.tool-size:hover        
+    background-color: #666
+    border: 2px solid
+    border-color: lighten(#666, 20%)
+
+
+
+.tool-size > *
+    &:hover
+        background-color: lighten(#666, 40%)
+        border-color: yellow
+
+.colors
+    grid-column-start: 1
+    grid-column-end: 3
+    width: 100px
+    height: 100px
+    position: relative
+    &:hover
+        background-color: #666
+        border: 2px solid
+        border-color: lighten(#666, 20%)
+
+.colors
+    display: grid
+    .colors-container
+        display: block
+        position: relative
+        margin: auto
+        width: 70px
+        height: 70px
+        .primary, .secondary
+            height: 40px
+            width: 40px
+            position: absolute
+            border: 2px solid
+            border-color: lighten(#666, 20%)
+        .primary
+            left: 5px
+            top: 5px
+            background-color: black
+        .secondary
+            left: 25px
+            top: 25px
