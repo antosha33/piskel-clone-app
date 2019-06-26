@@ -5,7 +5,7 @@ export default class App {
     this.color = '#000000';
     this.offsetX = null;
     this.offsetY = null;
-    this.secondaryColor = null;
+    this.secondaryColor = '#000000';
   }
 
 
@@ -136,6 +136,7 @@ export default class App {
           this.offsetY - this.toolSize / 2,
           this.toolSize, this.toolSize);
       }
+      App.drawPreview();
     }
     const drawBind = draw.bind(current);
     cursor.addEventListener('mousedown', () => {
@@ -212,13 +213,27 @@ export default class App {
         const tempColor = this.secondaryColor;
         this.secondaryColor = this.color;
         this.color = tempColor;
-        // console.log(e)
-        console.log(this.color);
         e.target.parentNode.children[0].value = this.color;
         e.target.parentNode.children[1].value = this.secondaryColor;
       }
     });
   }
 
-
+  static drawPreview() {
+    const canv = document.getElementById('canvas-overlay');
+    const preview = document.getElementById('preview-canvas');
+    const ctxpreview = preview.getContext('2d');
+    canv.addEventListener('mousemove', () => {
+      ctxpreview.clearRect(0, 0, 704, 704);
+      ctxpreview.drawImage(canv, 0, 0);
+    });
+    canv.addEventListener('click', () => {
+      ctxpreview.clearRect(0, 0, 704, 704);
+      ctxpreview.drawImage(canv, 0, 0);
+    });
+    canv.addEventListener('mousedown', () => {
+      ctxpreview.clearRect(0, 0, 704, 704);
+      ctxpreview.drawImage(canv, 0, 0);
+    });
+  }
 }
