@@ -6,3 +6,4 @@ app.hoverToMove();
 app.sizePicker();
 app.toolPicker();
 app.drawPen();
+app.colorPallete();
