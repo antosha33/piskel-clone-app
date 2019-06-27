@@ -175,8 +175,33 @@
         display: block
         position: absolute
         transform: scale(0.2)
-        top: -250px
+        top: -283px
         left: -282px
+    .frame-manager  
+        display: block
+        position: absolute
+        opacity: 0
+        width: 141px
+        height: 141px
+        .delete, .copy, .drag
+            width: 30px
+            height: 30px
+            position: absolute
+        .delete
+            background-image: url('./img/icons.png')
+            background-position: -274px -106px
+        .copy
+            right: 0px
+            background-image: url('./img/icons.png')
+            background-position: -274px -76px
+        .drag
+            bottom: 0px
+            background-image: url('./img/icons.png')
+            background-position: -274px -46px
+        &:hover
+            opacity: 0.7
+
+
 .frames
     .new-frame
         width: 80px
@@ -204,9 +229,13 @@
             display: block
             position: absolute
             transform: scale(0.2)
-            top: -250px
+            top: -282px
             left: -282px
     .first
         background-color: grey
     .second
         background-color: grey
+
+.button 
+  width: 100px
+  height: 100px

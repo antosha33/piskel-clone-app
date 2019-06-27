@@ -1,4 +1,3 @@
-import Frames from './frames.js';
 export default class App {
   constructor() {
     this.currentTool = 'pen';
@@ -9,7 +8,8 @@ export default class App {
     this.secondaryColor = '#000000';
     this.frames = [];
     this.stateIsChanged = false;
-    this.previewFrame = new Frames();
+    App.startAnimation();
+    this.frameManager();
   }
 
 
@@ -140,8 +140,6 @@ export default class App {
           this.offsetY - this.toolSize / 2,
           this.toolSize, this.toolSize);
       }
-
-      this.stateIsChanged =false;
     }
     const drawBind = draw.bind(current);
     cursor.addEventListener('mousedown', () => {
@@ -156,7 +154,7 @@ export default class App {
       isMouseDown = false;
       canv.removeEventListener('mousemove', drawBind);
     });
-    this.previewFrame.drawPreview();
+    this.drawPreview();
   }
 
   eraser() {
@@ -225,36 +223,103 @@ export default class App {
     });
   }
 
-  // drawPreview(isNew) {
-
-  // }
+  drawPreview() {
+    const canv = document.getElementById('canvas-overlay');
+    const frameContainer = document.getElementById('frame-container');
+    const preview = frameContainer.children[frameContainer.children.length - 1].children[0];
+    const ctxpreview = preview.getContext('2d');
+    const newframeButton = document.getElementById('new-frame');
+    function moveListener(){
+      ctxpreview.clearRect(0, 0, 704, 704);
+      ctxpreview.drawImage(canv, 0, 0);
+    }
+    function clickListener(){
+      ctxpreview.clearRect(0, 0, 704, 704);
+      ctxpreview.drawImage(canv, 0, 0);
+    }
+    function mousedownListener(){
+      ctxpreview.clearRect(0, 0, 704, 704);
+      ctxpreview.drawImage(canv, 0, 0);
+    }
+      canv.addEventListener('mousemove', moveListener);
+      canv.addEventListener('click', clickListener);
+      canv.addEventListener('mousedown', mousedownListener);
+    newframeButton.addEventListener('click', () => {
+      canv.removeEventListener('mousemove', moveListener);
+      canv.removeEventListener('click', clickListener);
+      canv.removeEventListener('mousedown', mousedownListener);
+    });
+  }
 
   addFrame() {
+    
     const newframeButton = document.getElementById('new-frame');
     const frameContainer = document.getElementById('frame-container');
     const mainCanvas = document.getElementById('canvas-overlay');
     const mainCtx = mainCanvas.getContext('2d');
+    const animationFrame = document.getElementById('animation-frames');
     newframeButton.addEventListener('click', () => {
       const frame = document.createElement('div');
       frame.setAttribute('class', 'preview-canvas');
-      frame.innerHTML = '<canvas width="704px" height="704px"></canvas>';
+      frame.innerHTML = `<canvas width="704px" height="704px"></canvas>
+      <div class="frame-manager">
+        <div class="delete"></div>
+        <div class="copy"></div>
+        <div class="drag"></div>
+      </div>`;
       frameContainer.appendChild(frame);
-      mainCtx.clearRect(0,0, mainCanvas.width, mainCanvas.height);
+      const frameCopy = frame.cloneNode(true);  
+      animationFrame.appendChild(frameCopy);
+      mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
       this.stateIsChanged = true;
-      this.previewFrame = new Frames();
-      this.previewFrame.drawPreview();
+      this.drawPreview(true);
+
     });
   }
 
   static startAnimation() {
+    let i=0;
+    let j=0;
+    const framesElement = document.getElementById('frame-container').children;
     function animate(){
-     const frames =  Array.from(animationFrames.children);   
-    setInterval(function(){
-      frames[j%2].style.zIndex = ++i;
-      ++j;
-    },200);
+      setInterval(function(){
+        const arrayFrames = Array.from(framesElement);
+        const canv = arrayFrames[i%arrayFrames.length].children[0];
+        const animationCanvas = document.getElementById('animation-canvas');
+        const animationCanvasCtx = animationCanvas.getContext('2d');
+        animationCanvasCtx.clearRect(0,0,704,704)
+        animationCanvasCtx.drawImage(canv, 0, 0);
+        i++;
+      },1000 / 25);
     }
     animate();
   }
 
+  frameManager() {
+    const frames = document.getElementById('frame-container');
+    const canv = document.getElementById('canvas-overlay');
+    const ctx = canv.getContext('2d');
+    frames.addEventListener('click', (e) => {
+      if (e.target.classList.contains('delete')) {
+        const arr = Array.from(frames.children);
+        if (arr.length > 1){
+          arr.reduce((el,current, index) => {
+            if( current === e.target.parentNode.parentNode) {
+              const frameCanv = arr[index-1].children[0];
+              ctx.clearRect(0,0,canv.width, canv.height);
+              ctx.drawImage(frameCanv, 0,0);
+            }
+            e.target.parentNode.parentNode.remove();
+          });
+        } else if(arr.length === 1){
+           const frameCanv = arr[0].children[0];
+          const frameCtx = frameCanv.getContext('2d');
+          ctx.clearRect(0,0,canv.width, canv.height);
+          frameCtx.clearRect(0,0,frameCanv.width, frameCanv.height);
+        }
+        this.drawPreview();
+      };
+
+    })
+  } 
 }
