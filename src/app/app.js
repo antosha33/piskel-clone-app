@@ -1,3 +1,4 @@
+import Frames from './frames.js';
 export default class App {
   constructor() {
     this.currentTool = 'pen';
@@ -6,6 +7,9 @@ export default class App {
     this.offsetX = null;
     this.offsetY = null;
     this.secondaryColor = '#000000';
+    this.frames = [];
+    this.stateIsChanged = false;
+    this.previewFrame = new Frames();
   }
 
 
@@ -136,7 +140,8 @@ export default class App {
           this.offsetY - this.toolSize / 2,
           this.toolSize, this.toolSize);
       }
-      App.drawPreview();
+
+      this.stateIsChanged =false;
     }
     const drawBind = draw.bind(current);
     cursor.addEventListener('mousedown', () => {
@@ -151,6 +156,7 @@ export default class App {
       isMouseDown = false;
       canv.removeEventListener('mousemove', drawBind);
     });
+    this.previewFrame.drawPreview();
   }
 
   eraser() {
@@ -219,21 +225,36 @@ export default class App {
     });
   }
 
-  static drawPreview() {
-    const canv = document.getElementById('canvas-overlay');
-    const preview = document.getElementById('preview-canvas');
-    const ctxpreview = preview.getContext('2d');
-    canv.addEventListener('mousemove', () => {
-      ctxpreview.clearRect(0, 0, 704, 704);
-      ctxpreview.drawImage(canv, 0, 0);
-    });
-    canv.addEventListener('click', () => {
-      ctxpreview.clearRect(0, 0, 704, 704);
-      ctxpreview.drawImage(canv, 0, 0);
-    });
-    canv.addEventListener('mousedown', () => {
-      ctxpreview.clearRect(0, 0, 704, 704);
-      ctxpreview.drawImage(canv, 0, 0);
+  // drawPreview(isNew) {
+
+  // }
+
+  addFrame() {
+    const newframeButton = document.getElementById('new-frame');
+    const frameContainer = document.getElementById('frame-container');
+    const mainCanvas = document.getElementById('canvas-overlay');
+    const mainCtx = mainCanvas.getContext('2d');
+    newframeButton.addEventListener('click', () => {
+      const frame = document.createElement('div');
+      frame.setAttribute('class', 'preview-canvas');
+      frame.innerHTML = '<canvas width="704px" height="704px"></canvas>';
+      frameContainer.appendChild(frame);
+      mainCtx.clearRect(0,0, mainCanvas.width, mainCanvas.height);
+      this.stateIsChanged = true;
+      this.previewFrame = new Frames();
+      this.previewFrame.drawPreview();
     });
   }
+
+  static startAnimation() {
+    function animate(){
+     const frames =  Array.from(animationFrames.children);   
+    setInterval(function(){
+      frames[j%2].style.zIndex = ++i;
+      ++j;
+    },200);
+    }
+    animate();
+  }
+
 }

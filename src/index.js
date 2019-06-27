@@ -7,3 +7,5 @@ app.sizePicker();
 app.toolPicker();
 app.drawPen();
 app.colorPallete();
+app.addFrame();
+// app.test();
