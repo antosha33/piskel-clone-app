@@ -260,7 +260,8 @@ export default class App {
     const animationFrame = document.getElementById('animation-frames');
     newframeButton.addEventListener('click', () => {
       const frame = document.createElement('div');
-      frame.setAttribute('class', 'preview-canvas');
+      frame.setAttribute('class', 'preview-canvas canvas-preview-item');
+      frame.setAttribute('draggable', 'true');
       frame.innerHTML = `<canvas width="704px" height="704px"></canvas>
       <div class="frame-manager">
         <div class="delete"></div>
@@ -301,25 +302,101 @@ export default class App {
     const ctx = canv.getContext('2d');
     frames.addEventListener('click', (e) => {
       if (e.target.classList.contains('delete')) {
-        const arr = Array.from(frames.children);
-        if (arr.length > 1){
-          arr.reduce((el,current, index) => {
-            if( current === e.target.parentNode.parentNode) {
-              const frameCanv = arr[index-1].children[0];
-              ctx.clearRect(0,0,canv.width, canv.height);
-              ctx.drawImage(frameCanv, 0,0);
-            }
-            e.target.parentNode.parentNode.remove();
-          });
-        } else if(arr.length === 1){
-           const frameCanv = arr[0].children[0];
-          const frameCtx = frameCanv.getContext('2d');
+        this.delFrame(frames,canv,ctx,e);
+      } else if(e.target.classList.contains('copy')){
+        this.copyFrame(frames,e);
+      } else if(e.target.classList.contains('drag')){
+        this.dragFrame();
+      }
+    });
+    frames.addEventListener('mousedown', (e) => {
+      if(e.target.classList.contains('drag')){
+        this.dragFrame();
+      }
+    });
+  }
+
+  delFrame(frames,canv,ctx,e){
+    const arr = Array.from(frames.children);
+    if (arr.length > 1){
+      arr.reduce((el,current, index) => {
+        if( current === e.target.parentNode.parentNode) {
+          const frameCanv = arr[index-1].children[0];
           ctx.clearRect(0,0,canv.width, canv.height);
-          frameCtx.clearRect(0,0,frameCanv.width, frameCanv.height);
+          ctx.drawImage(frameCanv, 0,0);
+        }
+        e.target.parentNode.parentNode.remove();
+      });
+      this.drawPreview();
+    } else if(arr.length === 1){
+       const frameCanv = arr[0].children[0];
+      const frameCtx = frameCanv.getContext('2d');
+      ctx.clearRect(0,0,canv.width, canv.height);
+      frameCtx.clearRect(0,0,frameCanv.width, frameCanv.height);
+      this.drawPreview();
+    }
+  }
+
+  copyFrame(frames,e){
+    const arr = Array.from(frames.children);
+      arr.reduce((el,current, index) => {
+        if( current === e.target.parentNode.parentNode) {
+          const frameCanv = e.target.parentNode.parentNode;
+          const copy = frameCanv.cloneNode(true);
+          const canvForCopy = e.target.parentNode.parentNode.children[0];
+          const ctxCopy = copy.children[0].getContext('2d');
+          ctxCopy.drawImage(canvForCopy,0,0);
+          frames.insertBefore(copy,frames.children[index+1]);
         }
         this.drawPreview();
-      };
+      },0);
+  }
 
+  dragFrame() {
+
+    const frames = document.getElementsByClassName('canvas-preview-item');
+
+    const draggingClass = 'dragging';
+    let dragSource;
+    function handleDragStart(ev ) {
+      ev.dataTransfer.effectAllowed='move';
+      // ev.dataTransfer.setData("Text", ev.target.getAttribute('id'));   
+      // // ev.dataTransfer.setDragImage(ev.target,100,100);
+      return true;
+    }
+  
+    function handleDragOver(evt) {
+
+    }
+  
+    function handleDragEnter(evt) {
+      console.log(evt);
+    }
+  
+    function handleDragLeave() {
+
+    }
+  
+    function handleDrop(evt) {
+      evt.stopPropagation();
+
+  
+      evt.preventDefault();
+    }
+  
+    function handleDragEnd() {
+
+    }
+
+
+    Array.prototype.forEach.call(frames, (el) => {
+      el.addEventListener('dragstart', handleDragStart);
+      el.addEventListener('dragenter', handleDragEnter);
+      el.addEventListener('dragover', handleDragOver);
+      el.addEventListener('dragleave', handleDragLeave);
+      el.addEventListener('drop', handleDrop);
+      el.addEventListener('dragend', handleDragEnd);
     })
-  } 
+  }
+
 }
