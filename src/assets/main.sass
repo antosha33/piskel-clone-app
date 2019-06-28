@@ -47,7 +47,7 @@
     background-color: grey
     position: relative
     padding: 10px
-    height: 720px
+    height: 100vh
     .canvas-container
       position: absolute
       left: calc(50% - 352px)
@@ -203,6 +203,8 @@
 
 
 .frames
+    overflow-y: scroll
+    height: 100vh
     .new-frame
         width: 80px
         height: 20px
@@ -217,10 +219,11 @@
 
 .animation
     background-color: grey
+    position: relative
     .preview-canvas
-        position: absolute
-        width: 140px
-        height: 140px
+        position: relative
+        width: 180px
+        height: 180px
         border: 2px solid
         border-color: lighten(#666, 20%)  
         margin: auto
@@ -228,14 +231,13 @@
         canvas
             display: block
             position: absolute
-            transform: scale(0.2)
-            top: -282px
-            left: -282px
-    .first
-        background-color: grey
-    .second
-        background-color: grey
+            transform: scale(0.25)
+            top: -262px
+            left: -260px
+    .fullscreen
+        height: 20px
+        width: 80px
+        background-color: darken(#666, 10%)  
+        margin: auto
+        margin-top: 20px
 
-.button 
-  width: 100px
-  height: 100px

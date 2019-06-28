@@ -1,3 +1,8 @@
+import Gif from '../assets/gif.js';
+import LZW from '../assets/animation/LZWEncoder.js';
+import Neu from '../assets/animation/NeuQuant.js';
+// import b64 from '../assets/animation/base64.js';
+import GIFE from 'gifencoder';
 export default class App {
   constructor() {
     this.currentTool = 'pen';
@@ -10,6 +15,7 @@ export default class App {
     this.stateIsChanged = false;
     App.startAnimation();
     this.frameManager();
+    App.fullScreen();
   }
 
 
@@ -50,6 +56,7 @@ export default class App {
       }
     }
     tools.addEventListener('click', setCurrentTool);
+
   }
 
 
@@ -249,19 +256,23 @@ export default class App {
       canv.removeEventListener('click', clickListener);
       canv.removeEventListener('mousedown', mousedownListener);
     });
+    frameContainer.addEventListener('mousedown', (e) => {
+      if(e.target.classList.contains('drag')){
+      canv.removeEventListener('mousemove', moveListener);
+      canv.removeEventListener('click', clickListener);
+      canv.removeEventListener('mousedown', mousedownListener);
+      }
+    });
   }
 
-  addFrame() {
-    
+  addFrame() {   
     const newframeButton = document.getElementById('new-frame');
     const frameContainer = document.getElementById('frame-container');
     const mainCanvas = document.getElementById('canvas-overlay');
     const mainCtx = mainCanvas.getContext('2d');
-    const animationFrame = document.getElementById('animation-frames');
     newframeButton.addEventListener('click', () => {
       const frame = document.createElement('div');
       frame.setAttribute('class', 'preview-canvas canvas-preview-item');
-      frame.setAttribute('draggable', 'true');
       frame.innerHTML = `<canvas width="704px" height="704px"></canvas>
       <div class="frame-manager">
         <div class="delete"></div>
@@ -269,12 +280,9 @@ export default class App {
         <div class="drag"></div>
       </div>`;
       frameContainer.appendChild(frame);
-      const frameCopy = frame.cloneNode(true);  
-      animationFrame.appendChild(frameCopy);
       mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
       this.stateIsChanged = true;
       this.drawPreview(true);
-
     });
   }
 
@@ -291,7 +299,7 @@ export default class App {
         animationCanvasCtx.clearRect(0,0,704,704)
         animationCanvasCtx.drawImage(canv, 0, 0);
         i++;
-      },1000 / 25);
+      },1000 / 5);
     }
     animate();
   }
@@ -305,15 +313,15 @@ export default class App {
         this.delFrame(frames,canv,ctx,e);
       } else if(e.target.classList.contains('copy')){
         this.copyFrame(frames,e);
-      } else if(e.target.classList.contains('drag')){
-        this.dragFrame();
       }
     });
     frames.addEventListener('mousedown', (e) => {
       if(e.target.classList.contains('drag')){
+        e.target.parentNode.parentNode.setAttribute('draggable','true');
         this.dragFrame();
-      }
+        }
     });
+
   }
 
   delFrame(frames,canv,ctx,e){
@@ -353,41 +361,53 @@ export default class App {
   }
 
   dragFrame() {
-
     const frames = document.getElementsByClassName('canvas-preview-item');
-
-    const draggingClass = 'dragging';
-    let dragSource;
-    function handleDragStart(ev ) {
+    let dragStartCanv = null;
+    let clinetX = [];
+    function handleDragStart(ev) {
       ev.dataTransfer.effectAllowed='move';
-      // ev.dataTransfer.setData("Text", ev.target.getAttribute('id'));   
-      // // ev.dataTransfer.setDragImage(ev.target,100,100);
-      return true;
-    }
+      ev.target.style.opacity = "0.2";
+      dragStartCanv = ev.target.children[0];
+      }
   
     function handleDragOver(evt) {
-
-    }
-  
-    function handleDragEnter(evt) {
-      console.log(evt);
-    }
-  
-    function handleDragLeave() {
-
-    }
-  
-    function handleDrop(evt) {
-      evt.stopPropagation();
-
-  
       evt.preventDefault();
     }
   
-    function handleDragEnd() {
-
+    function handleDragEnter(evt) {
+      evt.stopPropagation();
+      if(evt.target.parentNode.children[0].tagName === 'CANVAS' || 'DIV'){     
+      }
     }
-
+  
+    function handleDragLeave(ev) {
+    }
+  
+    function handleDrop(evt) {
+      evt.preventDefault();
+      if(evt.target.parentNode.children[0].tagName === 'CANVAS'){
+        const canvForRaplace = evt.target.parentNode.children[0];
+        const ctx = canvForRaplace.getContext('2d');
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.setAttribute('width', '704px');
+        tempCanvas.setAttribute('height', '704px');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.drawImage(canvForRaplace, 0, 0);
+        ctx.clearRect(0,0,canvForRaplace.width,canvForRaplace.height);
+        ctx.drawImage(dragStartCanv, 0, 0);
+        const dragStartCtx = dragStartCanv.getContext('2d');
+        dragStartCtx.clearRect(0,0,dragStartCanv.width,dragStartCanv.height);
+        dragStartCtx.drawImage(tempCanvas, 0,0);
+        evt.target.parentNode.parentNode.setAttribute('draggable','false');
+        dragStartCanv.parentNode.setAttribute('draggable','false');
+      }
+    }
+  
+    function handleDragEnd(ev) {
+      ev.stopPropagation();
+      ev.target.style.opacity = "1";
+    }
 
     Array.prototype.forEach.call(frames, (el) => {
       el.addEventListener('dragstart', handleDragStart);
@@ -399,4 +419,63 @@ export default class App {
     })
   }
 
+  static fullScreen() {
+    const fullScreen = document.getElementById('fullscreen');
+    fullScreen.addEventListener('click', () => {
+      const animationCanvas = document.getElementById('animation-canvas');
+      animationCanvas.style.transform = 'scale(1)';
+      animationCanvas.style.position = 'relative';
+      animationCanvas.style.display = 'block';
+      animationCanvas.style.margin = 'auto';
+      animationCanvas.style.top = '0';
+      animationCanvas.style.left = '0';
+      animationCanvas.parentNode.requestFullscreen(); 
+      animationCanvas.parentNode.style.backgroundColor = 'white';
+
+    const onfullscreenchange =  function(e){
+      if(!document.fullscreenElement){
+        animationCanvas.style.transform = 'scale(0.25)';
+        animationCanvas.style.position = 'absolute';
+        animationCanvas.style.display = 'block';
+        animationCanvas.style.top = '-262px';
+        animationCanvas.style.left = '-260px';
+        animationCanvas.parentNode.style.backgroundColor = 'grey';
+      }
+    }
+
+    window.addEventListener("fullscreenchange", onfullscreenchange);
+    })
+  }
+
+  exportToGif(){
+    const exportToGif = document.getElementById('export');
+    exportToGif.addEventListener('click', () => {
+      // const framesElement = document.getElementById('frame-container').children;
+      // const arrayFrames = Array.from(framesElement);
+      // const gif = new Gif({
+      //   workers: 2,
+      //   quality: 10
+      // });
+      // arrayFrames.forEach((el) => {
+      //   gif.addFrame(el.children[0], {deleay: 200});
+      // });
+      // gif.on('finished', function(blob) {
+      //   window.open(URL.createObjectURL(blob));
+      // });
+      // gif.render();
+       const framesElement = document.getElementById('frame-container').children;
+      const arrayFrames = Array.from(framesElement);
+      var encoder = new GIFE();
+      encoder.setRepeat(0);
+      encoder.setDelay(500);
+      encoder.start();
+      arrayFrames.forEach((el) => {
+        // console.log(el.children[0].getContext('2d'));
+            encoder.addFrame(el.children[0]);
+       });
+      encoder.finish();
+      encoder.download("download.gif");
+    })
+   
+  }
 }
