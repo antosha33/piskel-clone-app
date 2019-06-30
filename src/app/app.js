@@ -1,8 +1,9 @@
 import Gif from '../assets/gif.js';
 import LZW from '../assets/animation/LZWEncoder.js';
 import Neu from '../assets/animation/NeuQuant.js';
-// import b64 from '../assets/animation/base64.js';
-import GIFE from 'gifencoder';
+import b64 from '../assets/animation/base64.js';
+// import {GIFEncoder} from '../assets/animation/GIFEncoder.js';
+
 export default class App {
   constructor() {
     this.currentTool = 'pen';
@@ -465,16 +466,25 @@ export default class App {
       // gif.render();
        const framesElement = document.getElementById('frame-container').children;
       const arrayFrames = Array.from(framesElement);
-      var encoder = new GIFE();
-      encoder.setRepeat(0);
-      encoder.setDelay(500);
-      encoder.start();
+        const backgroundToWhite = function (canv){
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.setAttribute('width', '704px');
+          tempCanvas.setAttribute('height', '704px');
+          const tempCtx = tempCanvas.getContext('2d');
+          tempCtx.fillStyle = 'white';
+          tempCtx.fillRect(0,0, tempCanvas.width, tempCanvas.height);
+          tempCtx.drawImage(canv,0,0);
+          return tempCtx;
+        }  
+        const somm = new GIFEncoder();
+        somm.setRepeat(0);
+        somm.setDelay(500);
+        somm.start();
       arrayFrames.forEach((el) => {
-        // console.log(el.children[0].getContext('2d'));
-            encoder.addFrame(el.children[0]);
+        somm.addFrame(backgroundToWhite(el.children[0]));
        });
-      encoder.finish();
-      encoder.download("download.gif");
+       somm.finish();
+       somm.download("download.gif");
     })
    
   }

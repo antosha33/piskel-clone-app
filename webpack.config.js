@@ -3,12 +3,13 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: [
+    './src/assets/animation/GIFEncoder.js',  
     './src/assets/animation/LZWEncoder.js',   
     './src/assets/animation/base64.js',   
     './src/index.js'],
   output: {
     filename: 'app.bundle.js',
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, 'dist')
   },
   devtool: 'source-map',
   module: {
