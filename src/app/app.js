@@ -48,6 +48,7 @@ export default class App {
         case 'paint-bucket':
           scope.currentTool = 'paint-bucket';
           setTool();
+          scope.paintBucket();
           break;
         case 'eraser':
           scope.currentTool = 'eraser';
@@ -74,7 +75,7 @@ export default class App {
     };
     canv.addEventListener('mousemove', (e) => {
       if ((previousRect.x === 0 || previousRect.Y === 0) || Math.abs(lastCoordinate.x - e.offsetX / this.toolSize) > 0.5 || Math.abs(lastCoordinate.y - e.offsetY / this.toolSize) > 0.5) {
-        if (this.currentTool !== 'color-select') {
+        if (this.currentTool !== 'color-select' && this.currentTool !== 'paint-bucket') {
           lastCoordinate.x = Math.abs(e.offsetX / this.toolSize);
           lastCoordinate.y = Math.abs(e.offsetY / this.toolSize);
           cursor.style.left = `${e.offsetX - this.toolSize / 2}px`;
@@ -451,19 +452,6 @@ export default class App {
   exportToGif(){
     const exportToGif = document.getElementById('export');
     exportToGif.addEventListener('click', () => {
-      // const framesElement = document.getElementById('frame-container').children;
-      // const arrayFrames = Array.from(framesElement);
-      // const gif = new Gif({
-      //   workers: 2,
-      //   quality: 10
-      // });
-      // arrayFrames.forEach((el) => {
-      //   gif.addFrame(el.children[0], {deleay: 200});
-      // });
-      // gif.on('finished', function(blob) {
-      //   window.open(URL.createObjectURL(blob));
-      // });
-      // gif.render();
        const framesElement = document.getElementById('frame-container').children;
       const arrayFrames = Array.from(framesElement);
         const backgroundToWhite = function (canv){
@@ -486,6 +474,146 @@ export default class App {
        somm.finish();
        somm.download("download.gif");
     })
-   
   }
+  paintBucket(){
+    if(this.currentTool === 'paint-bucket'){
+      const canv = document.getElementById('canvas-overlay');
+      const ctx = canv.getContext('2d');
+      document.getElementById('cursor').style.display='none';
+      canv.addEventListener('click', (e) => {
+        
+          let contexts = {},
+              drawingAreaWidth = 704,
+              drawingAreaHeight = 704,    
+              colorLayerData,
+              outlineLayerData;
+            let curColor = hexToRgb(this.color);
+            if(curColor.r === 0, curColor.g === 0, curColor.b === 0) curColor.b = 1;
+            contexts.drawing = ctx;
+            contexts.outline = ctx;
+            outlineLayerData = contexts.drawing.getImageData(0, 0, drawingAreaWidth, drawingAreaHeight);
+            colorLayerData = contexts.drawing.getImageData(0, 0, drawingAreaWidth, drawingAreaHeight);
+         
+            function hexToRgb(hex){
+              if (hex.substr(0, 1) == '#') hex = hex.substr(1);   
+              let r, g, b;
+              r = hex.substr(0, 2);
+              g = hex.substr(2, 2);
+              b = hex.substr(4, 2);
+              r = parseInt(r, 16);
+              g = parseInt(g, 16);
+              b = parseInt(b, 16);
+              return {r: r, g: g, b: b};
+            };
+
+            function matchOutlineColor(r, g, b, a) {
+              return (r + g + b < 100 && a === 255);
+            };
+        
+            function matchStartColor (pixelPos, startR, startG, startB) {
+              let r = outlineLayerData.data[pixelPos],
+                g = outlineLayerData.data[pixelPos + 1],
+                b = outlineLayerData.data[pixelPos + 2],
+                a = outlineLayerData.data[pixelPos + 3];
+              if (matchOutlineColor(r, g, b, a)) {
+                return false;
+              }     
+              r = colorLayerData.data[pixelPos];
+              g = colorLayerData.data[pixelPos + 1];
+              b = colorLayerData.data[pixelPos + 2];
+              if (r === startR && g === startG && b === startB) {
+                return true;
+              }
+              if (r === curColor.r && g === curColor.g && b === curColor.b) {
+                return false;
+              }
+              return (Math.abs(r - startR) + Math.abs(g - startG) + Math.abs(b - startB) < 255);
+            };
+        
+            function colorPixel(pixelPos, r, g, b, a) {        
+              colorLayerData.data[pixelPos] = r;
+              colorLayerData.data[pixelPos + 1] = g;
+              colorLayerData.data[pixelPos + 2] = b;
+              colorLayerData.data[pixelPos + 3] = a !== undefined ? a : 255;
+            };
+        
+            function floodFill(startX, startY, startR, startG, startB) {
+              let newPos,
+                x,
+                y,
+                pixelPos,
+                reachLeft,
+                reachRight,
+                drawingBoundLeft = 0,
+                drawingBoundTop = 0,
+                drawingBoundRight = drawingAreaWidth - 1,
+                drawingBoundBottom = drawingAreaHeight - 1,
+                pixelStack = [[startX, startY]];
+              while (pixelStack.length) {
+                newPos = pixelStack.pop();
+                x = newPos[0];
+                y = newPos[1];
+                pixelPos = (y * drawingAreaWidth + x) * 4;
+                while (y >= drawingBoundTop && matchStartColor(pixelPos, startR, startG, startB)) {
+                  y -= 1;
+                  pixelPos -= drawingAreaWidth * 4;
+                }     
+                pixelPos += drawingAreaWidth * 4;
+                y += 1;
+                reachLeft = false;
+                reachRight = false;
+                while (y <= drawingBoundBottom && matchStartColor(pixelPos, startR, startG, startB)) {
+                  y += 1;        
+                  colorPixel(pixelPos, curColor.r, curColor.g, curColor.b);        
+                  if (x > drawingBoundLeft) {
+                    if (matchStartColor(pixelPos - 4, startR, startG, startB)) {
+                      if (!reachLeft) {
+                        pixelStack.push([x - 1, y]);
+                        reachLeft = true;
+                      }
+                    } else if (reachLeft) {
+                      reachLeft = false;
+                    }
+                  }
+        
+                  if (x < drawingBoundRight) {
+                    if (matchStartColor(pixelPos + 4, startR, startG, startB)) {
+                      if (!reachRight) {
+                        pixelStack.push([x + 1, y]);
+                        reachRight = true;
+                      }
+                    } else if (reachRight) {
+                      reachRight = false;
+                    }
+                  }
+        
+                  pixelPos += drawingAreaWidth * 4;
+                }
+              }
+            };
+        
+            function paintAt(startX, startY) {                
+              let pixelPos = (startY * drawingAreaWidth + startX) * 4,
+              
+                r = colorLayerData.data[pixelPos],
+                g = colorLayerData.data[pixelPos + 1],
+                b = colorLayerData.data[pixelPos + 2],
+                a = colorLayerData.data[pixelPos + 3];
+
+              if ((r === curColor.r && g === curColor.g && b === curColor.b) && (r !== 0 && g !== 0 && b !== 0)) {
+               return;
+              }      
+              if (matchOutlineColor(r, g, b, a)) {
+                return;
+              }        
+              floodFill(startX, startY, r, g, b);
+            };
+
+          paintAt(e.offsetX, e.offsetY);
+          contexts.drawing.putImageData(colorLayerData, 0, 0, 0, 0, drawingAreaWidth, drawingAreaHeight);
+  
+      });
+    }
+  }
+
 }
