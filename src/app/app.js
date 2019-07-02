@@ -1,8 +1,7 @@
-import Gif from '../assets/gif.js';
 import LZW from '../assets/animation/LZWEncoder.js';
 import Neu from '../assets/animation/NeuQuant.js';
 import b64 from '../assets/animation/base64.js';
-// import {GIFEncoder} from '../assets/animation/GIFEncoder.js';
+import {GIFEncoder} from '../assets/animation/GIFEncoder.js';
 
 export default class App {
   constructor() {
@@ -189,6 +188,7 @@ export default class App {
     cursor.addEventListener('mouseup', () => {
       isMouseDown = false;
     });
+    this.saveToLocalStorage();
   }
 
   colorPicker() {
@@ -616,4 +616,34 @@ export default class App {
     }
   }
 
+  saveToLocalStorage(){
+    const objToLocal = {};
+    objToLocal.color = this.color;
+    objToLocal.secondaryColor = this.secondaryColor;
+    objToLocal.frames = [];
+    const framesElement = document.getElementById('frame-container').children;
+    const arrayFrames = Array.from(framesElement);
+    arrayFrames.forEach((el) => {
+      objToLocal.frames.push(el.children[0].toDataURL());
+    });
+    localStorage.setItem('currentState', JSON.stringify(objToLocal));
+    console.log(objToLocal);
+  }
+
+  restoreFromLocalStorage(){
+    const state = localStorage.getItem('currentState');
+    if(state !== null){
+      const stateObject = JSON.parse(state);
+      const colors = document.getElementById('colors-container');
+      if(stateObject.color){
+        this.color = stateObject.color;
+        colors.children[0].value = this.color;
+      }
+      if(stateObject.secondaryColor){
+        this.secondaryColor = stateObject.secondaryColor;
+        colors.children[1].value = this.secondaryColor;
+      }
+      
+    }
+  }
 }

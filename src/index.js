@@ -10,4 +10,4 @@ app.drawPen();
 app.colorPallete();
 app.addFrame();
 app.exportToGif();
-// app.test();
+app.restoreFromLocalStorage();
