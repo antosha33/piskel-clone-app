@@ -396,8 +396,8 @@ export default class App {
 
     function handleDrop(evt) {
       evt.preventDefault();
-      if (evt.target.parentNode.children[0].tagName === 'CANVAS') {
-        const canvForRaplace = evt.target.parentNode.children[0];
+      if (evt.target.parentNode.children[0].tagName === 'CANVAS' || evt.target.parentNode.children[0].tagName === 'DIV') {
+        const canvForRaplace = evt.target.parentNode.children[0].tagName === 'CANVAS' ? evt.target.parentNode.children[0] : evt.target.parentNode.parentNode.children[0];
         const ctx = canvForRaplace.getContext('2d');
         const tempCanvas = document.createElement('canvas');
         tempCanvas.setAttribute('width', '704px');
