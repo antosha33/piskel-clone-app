@@ -9,5 +9,5 @@ app.toolPicker();
 app.drawPen();
 app.colorPallete();
 app.addFrame();
-app.exportToGif();
 app.restoreFromLocalStorage();
+app.saveToLocalStorage();

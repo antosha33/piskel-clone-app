@@ -1,7 +1,6 @@
 import LZW from '../assets/animation/LZWEncoder.js';
 import Neu from '../assets/animation/NeuQuant.js';
 import b64 from '../assets/animation/base64.js';
-import {GIFEncoder} from '../assets/animation/GIFEncoder.js';
 
 export default class App {
   constructor() {
@@ -16,6 +15,9 @@ export default class App {
     App.startAnimation();
     this.frameManager();
     App.fullScreen();
+    this.state = localStorage.getItem('currentState');
+    this.flag = false;
+    App.exportToGif();
   }
 
 
@@ -54,10 +56,10 @@ export default class App {
           setTool();
           scope.eraser();
           break;
+        default:
       }
     }
     tools.addEventListener('click', setCurrentTool);
-
   }
 
 
@@ -73,7 +75,9 @@ export default class App {
       y: 0,
     };
     canv.addEventListener('mousemove', (e) => {
-      if ((previousRect.x === 0 || previousRect.Y === 0) || Math.abs(lastCoordinate.x - e.offsetX / this.toolSize) > 0.5 || Math.abs(lastCoordinate.y - e.offsetY / this.toolSize) > 0.5) {
+      if ((previousRect.x === 0 || previousRect.Y === 0)
+      || Math.abs(lastCoordinate.x - e.offsetX / this.toolSize) > 0.5
+      || Math.abs(lastCoordinate.y - e.offsetY / this.toolSize) > 0.5) {
         if (this.currentTool !== 'color-select' && this.currentTool !== 'paint-bucket') {
           lastCoordinate.x = Math.abs(e.offsetX / this.toolSize);
           lastCoordinate.y = Math.abs(e.offsetY / this.toolSize);
@@ -87,7 +91,7 @@ export default class App {
         }
       }
     });
-    canv.addEventListener('mouseleave', (e) => {
+    canv.addEventListener('mouseleave', () => {
       previousRect.x = 0;
       previousRect.y = 0;
     });
@@ -128,6 +132,7 @@ export default class App {
           scope.toolSize = '40';
           setSize();
           break;
+        default:
       }
     }
     sizeElem.addEventListener('click', setCurrentSize);
@@ -188,7 +193,6 @@ export default class App {
     cursor.addEventListener('mouseup', () => {
       isMouseDown = false;
     });
-    this.saveToLocalStorage();
   }
 
   colorPicker() {
@@ -204,7 +208,7 @@ export default class App {
       cursor.style.display = 'none';
       canv.addEventListener('click', (e) => {
         const color = ctx.getImageData(e.offsetX, e.offsetY, 1, 1).data;
-        scope.color = "#" + ("000000" + rgbToHex(color[0], color[1], color[2])).slice(-6);;
+        scope.color = `#${(`000000${rgbToHex(color[0], color[1], color[2])}`).slice(-6)}`;
         colors.children[0].value = scope.color;
       });
     }
@@ -213,13 +217,13 @@ export default class App {
   colorPallete() {
     const scope = this;
     const colors = document.getElementById('colors-container');
-    colors.addEventListener('click', (e)=>{
+    colors.addEventListener('click', (e) => {
       if (e.target.classList.contains('primary')) {
-        e.target.addEventListener('change', (e)=> {
+        e.target.addEventListener('change', () => {
           scope.color = e.target.value;
         });
       } else if (e.target.classList.contains('secondary')) {
-        e.target.addEventListener('change', (e)=> {
+        e.target.addEventListener('change', () => {
           scope.secondaryColor = e.target.value;
         });
       } else if (e.target.classList.contains('swap')) {
@@ -238,36 +242,44 @@ export default class App {
     const preview = frameContainer.children[frameContainer.children.length - 1].children[0];
     const ctxpreview = preview.getContext('2d');
     const newframeButton = document.getElementById('new-frame');
-    function moveListener(){
+
+    function moveListener() {
       ctxpreview.clearRect(0, 0, 704, 704);
       ctxpreview.drawImage(canv, 0, 0);
     }
-    function clickListener(){
+    function clickListener() {
       ctxpreview.clearRect(0, 0, 704, 704);
       ctxpreview.drawImage(canv, 0, 0);
     }
-    function mousedownListener(){
+    function mousedownListener() {
       ctxpreview.clearRect(0, 0, 704, 704);
       ctxpreview.drawImage(canv, 0, 0);
     }
-      canv.addEventListener('mousemove', moveListener);
-      canv.addEventListener('click', clickListener);
-      canv.addEventListener('mousedown', mousedownListener);
+    canv.addEventListener('mousemove', moveListener);
+    canv.addEventListener('click', clickListener);
+    canv.addEventListener('mousedown', mousedownListener);
+
     newframeButton.addEventListener('click', () => {
       canv.removeEventListener('mousemove', moveListener);
       canv.removeEventListener('click', clickListener);
       canv.removeEventListener('mousedown', mousedownListener);
     });
     frameContainer.addEventListener('mousedown', (e) => {
-      if(e.target.classList.contains('drag')){
+      if (e.target.classList.contains('drag')) {
+        canv.removeEventListener('mousemove', moveListener);
+        canv.removeEventListener('click', clickListener);
+        canv.removeEventListener('mousedown', mousedownListener);
+        this.drawPreview();
+      }
+    });
+    if (this.state !== null && this.flag === false) {
       canv.removeEventListener('mousemove', moveListener);
       canv.removeEventListener('click', clickListener);
       canv.removeEventListener('mousedown', mousedownListener);
-      }
-    });
+    }
   }
 
-  addFrame() {   
+  addFrame() {
     const newframeButton = document.getElementById('new-frame');
     const frameContainer = document.getElementById('frame-container');
     const mainCanvas = document.getElementById('canvas-overlay');
@@ -289,19 +301,18 @@ export default class App {
   }
 
   static startAnimation() {
-    let i=0;
-    let j=0;
+    let i = 0;
     const framesElement = document.getElementById('frame-container').children;
-    function animate(){
-      setInterval(function(){
+    function animate() {
+      setInterval(() => {
         const arrayFrames = Array.from(framesElement);
-        const canv = arrayFrames[i%arrayFrames.length].children[0];
+        const canv = arrayFrames[i % arrayFrames.length].children[0];
         const animationCanvas = document.getElementById('animation-canvas');
         const animationCanvasCtx = animationCanvas.getContext('2d');
-        animationCanvasCtx.clearRect(0,0,704,704)
+        animationCanvasCtx.clearRect(0, 0, 704, 704);
         animationCanvasCtx.drawImage(canv, 0, 0);
-        i++;
-      },1000 / 5);
+        i += 1;
+      }, 1000 / 5);
     }
     animate();
   }
@@ -312,82 +323,80 @@ export default class App {
     const ctx = canv.getContext('2d');
     frames.addEventListener('click', (e) => {
       if (e.target.classList.contains('delete')) {
-        this.delFrame(frames,canv,ctx,e);
-      } else if(e.target.classList.contains('copy')){
-        this.copyFrame(frames,e);
+        this.delFrame(frames, canv, ctx, e);
+      } else if (e.target.classList.contains('copy')) {
+        this.copyFrame(frames, e);
       }
     });
     frames.addEventListener('mousedown', (e) => {
-      if(e.target.classList.contains('drag')){
-        e.target.parentNode.parentNode.setAttribute('draggable','true');
-        this.dragFrame();
-        }
+      if (e.target.classList.contains('drag')) {
+        e.target.parentNode.parentNode.setAttribute('draggable', 'true');
+        App.dragFrame();
+      }
     });
-
   }
 
-  delFrame(frames,canv,ctx,e){
+  delFrame(frames, canv, ctx, e) {
     const arr = Array.from(frames.children);
-    if (arr.length > 1){
-      arr.reduce((el,current, index) => {
-        if( current === e.target.parentNode.parentNode) {
-          const frameCanv = arr[index-1].children[0];
-          ctx.clearRect(0,0,canv.width, canv.height);
-          ctx.drawImage(frameCanv, 0,0);
+    if (arr.length > 1) {
+      arr.reduce((el, current, index) => {
+        if (current === e.target.parentNode.parentNode) {
+          const frameCanv = arr[index - 1].children[0];
+          ctx.clearRect(0, 0, canv.width, canv.height);
+          ctx.drawImage(frameCanv, 0, 0);
         }
         e.target.parentNode.parentNode.remove();
+        return el;
       });
       this.drawPreview();
-    } else if(arr.length === 1){
-       const frameCanv = arr[0].children[0];
+    } else if (arr.length === 1) {
+      const frameCanv = arr[0].children[0];
       const frameCtx = frameCanv.getContext('2d');
-      ctx.clearRect(0,0,canv.width, canv.height);
-      frameCtx.clearRect(0,0,frameCanv.width, frameCanv.height);
+      ctx.clearRect(0, 0, canv.width, canv.height);
+      frameCtx.clearRect(0, 0, frameCanv.width, frameCanv.height);
       this.drawPreview();
     }
   }
 
-  copyFrame(frames,e){
+  copyFrame(frames, e) {
     const arr = Array.from(frames.children);
-      arr.reduce((el,current, index) => {
-        if( current === e.target.parentNode.parentNode) {
-          const frameCanv = e.target.parentNode.parentNode;
-          const copy = frameCanv.cloneNode(true);
-          const canvForCopy = e.target.parentNode.parentNode.children[0];
-          const ctxCopy = copy.children[0].getContext('2d');
-          ctxCopy.drawImage(canvForCopy,0,0);
-          frames.insertBefore(copy,frames.children[index+1]);
-        }
-        this.drawPreview();
-      },0);
+    arr.reduce((el, current, index) => {
+      if (current === e.target.parentNode.parentNode) {
+        const frameCanv = e.target.parentNode.parentNode;
+        const copy = frameCanv.cloneNode(true);
+        const canvForCopy = e.target.parentNode.parentNode.children[0];
+        const ctxCopy = copy.children[0].getContext('2d');
+        ctxCopy.drawImage(canvForCopy, 0, 0);
+        frames.insertBefore(copy, frames.children[index + 1]);
+      }
+      this.drawPreview();
+      return el;
+    }, 0);
   }
 
-  dragFrame() {
+  static dragFrame() {
     const frames = document.getElementsByClassName('canvas-preview-item');
     let dragStartCanv = null;
-    let clinetX = [];
     function handleDragStart(ev) {
-      ev.dataTransfer.effectAllowed='move';
-      ev.target.style.opacity = "0.2";
-      dragStartCanv = ev.target.children[0];
-      }
-  
+      ev.dataTransfer.effectAllowed = 'move';
+      ev.target.style.opacity = '0.2';
+      [dragStartCanv] = [ev.target.children[0]];
+    }
+
     function handleDragOver(evt) {
       evt.preventDefault();
     }
-  
+
     function handleDragEnter(evt) {
       evt.stopPropagation();
-      if(evt.target.parentNode.children[0].tagName === 'CANVAS' || 'DIV'){     
-      }
     }
-  
-    function handleDragLeave(ev) {
+
+    function handleDragLeave() {
     }
-  
+
     function handleDrop(evt) {
       evt.preventDefault();
-      if(evt.target.parentNode.children[0].tagName === 'CANVAS'){
+      if (evt.target.parentNode.children[0].tagName === 'CANVAS') {
         const canvForRaplace = evt.target.parentNode.children[0];
         const ctx = canvForRaplace.getContext('2d');
         const tempCanvas = document.createElement('canvas');
@@ -396,19 +405,23 @@ export default class App {
         const tempCtx = tempCanvas.getContext('2d');
         tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
         tempCtx.drawImage(canvForRaplace, 0, 0);
-        ctx.clearRect(0,0,canvForRaplace.width,canvForRaplace.height);
+        ctx.clearRect(0, 0, canvForRaplace.width, canvForRaplace.height);
         ctx.drawImage(dragStartCanv, 0, 0);
         const dragStartCtx = dragStartCanv.getContext('2d');
-        dragStartCtx.clearRect(0,0,dragStartCanv.width,dragStartCanv.height);
-        dragStartCtx.drawImage(tempCanvas, 0,0);
-        evt.target.parentNode.parentNode.setAttribute('draggable','false');
-        dragStartCanv.parentNode.setAttribute('draggable','false');
+        const mainOverlay = document.getElementById('canvas-overlay');
+        const ctxMain = mainOverlay.getContext('2d');
+        ctxMain.clearRect(0, 0, mainOverlay.width, mainOverlay.height);
+        ctxMain.drawImage(dragStartCanv, 0, 0);
+        dragStartCtx.clearRect(0, 0, dragStartCanv.width, dragStartCanv.height);
+        dragStartCtx.drawImage(tempCanvas, 0, 0);
+        evt.target.parentNode.parentNode.setAttribute('draggable', 'false');
+        dragStartCanv.parentNode.setAttribute('draggable', 'false');
       }
     }
-  
+
     function handleDragEnd(ev) {
       ev.stopPropagation();
-      ev.target.style.opacity = "1";
+      ev.target.style.opacity = '1';
     }
 
     Array.prototype.forEach.call(frames, (el) => {
@@ -418,7 +431,7 @@ export default class App {
       el.addEventListener('dragleave', handleDragLeave);
       el.addEventListener('drop', handleDrop);
       el.addEventListener('dragend', handleDragEnd);
-    })
+    });
   }
 
   static fullScreen() {
@@ -431,219 +444,249 @@ export default class App {
       animationCanvas.style.margin = 'auto';
       animationCanvas.style.top = '0';
       animationCanvas.style.left = '0';
-      animationCanvas.parentNode.requestFullscreen(); 
+      animationCanvas.parentNode.requestFullscreen();
       animationCanvas.parentNode.style.backgroundColor = 'white';
 
-    const onfullscreenchange =  function(e){
-      if(!document.fullscreenElement){
-        animationCanvas.style.transform = 'scale(0.25)';
-        animationCanvas.style.position = 'absolute';
-        animationCanvas.style.display = 'block';
-        animationCanvas.style.top = '-262px';
-        animationCanvas.style.left = '-260px';
-        animationCanvas.parentNode.style.backgroundColor = 'grey';
+      function onfullscreenchange() {
+        if (!document.fullscreenElement) {
+          animationCanvas.style.transform = 'scale(0.25)';
+          animationCanvas.style.position = 'absolute';
+          animationCanvas.style.display = 'block';
+          animationCanvas.style.top = '-262px';
+          animationCanvas.style.left = '-260px';
+          animationCanvas.parentNode.style.backgroundColor = 'grey';
+        }
       }
-    }
-
-    window.addEventListener("fullscreenchange", onfullscreenchange);
-    })
+      window.addEventListener('fullscreenchange', onfullscreenchange);
+    });
   }
 
-  exportToGif(){
+  static exportToGif() {
     const exportToGif = document.getElementById('export');
     exportToGif.addEventListener('click', () => {
-       const framesElement = document.getElementById('frame-container').children;
+      const framesElement = document.getElementById('frame-container').children;
       const arrayFrames = Array.from(framesElement);
-        const backgroundToWhite = function (canv){
-          const tempCanvas = document.createElement('canvas');
-          tempCanvas.setAttribute('width', '704px');
-          tempCanvas.setAttribute('height', '704px');
-          const tempCtx = tempCanvas.getContext('2d');
-          tempCtx.fillStyle = 'white';
-          tempCtx.fillRect(0,0, tempCanvas.width, tempCanvas.height);
-          tempCtx.drawImage(canv,0,0);
-          return tempCtx;
-        }  
-        const somm = new GIFEncoder();
-        somm.setRepeat(0);
-        somm.setDelay(500);
-        somm.start();
+      function backgroundToWhite(canv) {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.setAttribute('width', '704px');
+        tempCanvas.setAttribute('height', '704px');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.fillStyle = 'white';
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.drawImage(canv, 0, 0);
+        return tempCtx;
+      }
+      const somm = new GIFEncoder();
+      somm.setRepeat(0);
+      somm.setDelay(500);
+      somm.start();
       arrayFrames.forEach((el) => {
         somm.addFrame(backgroundToWhite(el.children[0]));
-       });
-       somm.finish();
-       somm.download("download.gif");
-    })
+      });
+      somm.finish();
+      somm.download('download.gif');
+    });
   }
-  paintBucket(){
-    if(this.currentTool === 'paint-bucket'){
+
+  paintBucket() {
+    if (this.currentTool === 'paint-bucket') {
       const canv = document.getElementById('canvas-overlay');
       const ctx = canv.getContext('2d');
-      document.getElementById('cursor').style.display='none';
+      document.getElementById('cursor').style.display = 'none';
       canv.addEventListener('click', (e) => {
-        
-          let contexts = {},
-              drawingAreaWidth = 704,
-              drawingAreaHeight = 704,    
-              colorLayerData,
-              outlineLayerData;
-            let curColor = hexToRgb(this.color);
-            if(curColor.r === 0, curColor.g === 0, curColor.b === 0) curColor.b = 1;
-            contexts.drawing = ctx;
-            contexts.outline = ctx;
-            outlineLayerData = contexts.drawing.getImageData(0, 0, drawingAreaWidth, drawingAreaHeight);
-            colorLayerData = contexts.drawing.getImageData(0, 0, drawingAreaWidth, drawingAreaHeight);
-         
-            function hexToRgb(hex){
-              if (hex.substr(0, 1) == '#') hex = hex.substr(1);   
-              let r, g, b;
-              r = hex.substr(0, 2);
-              g = hex.substr(2, 2);
-              b = hex.substr(4, 2);
-              r = parseInt(r, 16);
-              g = parseInt(g, 16);
-              b = parseInt(b, 16);
-              return {r: r, g: g, b: b};
-            };
+        const contexts = {};
+        const drawingAreaWidth = 704;
+        const drawingAreaHeight = 704;
+        const curColor = hexToRgb(this.color);
+        if (curColor.r === 0 && curColor.g === 0 && curColor.b === 0) curColor.b = 1;
+        contexts.drawing = ctx;
+        contexts.outline = ctx;
+        const outlineLayerData = contexts.drawing.getImageData(0, 0, drawingAreaWidth, drawingAreaHeight);
+        const colorLayerData = contexts.drawing.getImageData(0, 0, drawingAreaWidth, drawingAreaHeight);
 
-            function matchOutlineColor(r, g, b, a) {
-              return (r + g + b < 100 && a === 255);
-            };
-        
-            function matchStartColor (pixelPos, startR, startG, startB) {
-              let r = outlineLayerData.data[pixelPos],
-                g = outlineLayerData.data[pixelPos + 1],
-                b = outlineLayerData.data[pixelPos + 2],
-                a = outlineLayerData.data[pixelPos + 3];
-              if (matchOutlineColor(r, g, b, a)) {
-                return false;
-              }     
-              r = colorLayerData.data[pixelPos];
-              g = colorLayerData.data[pixelPos + 1];
-              b = colorLayerData.data[pixelPos + 2];
-              if (r === startR && g === startG && b === startB) {
-                return true;
-              }
-              if (r === curColor.r && g === curColor.g && b === curColor.b) {
-                return false;
-              }
-              return (Math.abs(r - startR) + Math.abs(g - startG) + Math.abs(b - startB) < 255);
-            };
-        
-            function colorPixel(pixelPos, r, g, b, a) {        
-              colorLayerData.data[pixelPos] = r;
-              colorLayerData.data[pixelPos + 1] = g;
-              colorLayerData.data[pixelPos + 2] = b;
-              colorLayerData.data[pixelPos + 3] = a !== undefined ? a : 255;
-            };
-        
-            function floodFill(startX, startY, startR, startG, startB) {
-              let newPos,
-                x,
-                y,
-                pixelPos,
-                reachLeft,
-                reachRight,
-                drawingBoundLeft = 0,
-                drawingBoundTop = 0,
-                drawingBoundRight = drawingAreaWidth - 1,
-                drawingBoundBottom = drawingAreaHeight - 1,
-                pixelStack = [[startX, startY]];
-              while (pixelStack.length) {
-                newPos = pixelStack.pop();
-                x = newPos[0];
-                y = newPos[1];
-                pixelPos = (y * drawingAreaWidth + x) * 4;
-                while (y >= drawingBoundTop && matchStartColor(pixelPos, startR, startG, startB)) {
-                  y -= 1;
-                  pixelPos -= drawingAreaWidth * 4;
-                }     
-                pixelPos += drawingAreaWidth * 4;
-                y += 1;
-                reachLeft = false;
-                reachRight = false;
-                while (y <= drawingBoundBottom && matchStartColor(pixelPos, startR, startG, startB)) {
-                  y += 1;        
-                  colorPixel(pixelPos, curColor.r, curColor.g, curColor.b);        
-                  if (x > drawingBoundLeft) {
-                    if (matchStartColor(pixelPos - 4, startR, startG, startB)) {
-                      if (!reachLeft) {
-                        pixelStack.push([x - 1, y]);
-                        reachLeft = true;
-                      }
-                    } else if (reachLeft) {
-                      reachLeft = false;
-                    }
+        function hexToRgb(hex) {
+          if (hex.substr(0, 1) === '#') hex = hex.substr(1);
+          let r; let g; let
+            b;
+          r = hex.substr(0, 2);
+          g = hex.substr(2, 2);
+          b = hex.substr(4, 2);
+          r = parseInt(r, 16);
+          g = parseInt(g, 16);
+          b = parseInt(b, 16);
+          return { r, g, b };
+        }
+
+        function matchOutlineColor(r, g, b, a) {
+          return (r + g + b < 100 && a === 255);
+        }
+
+        function matchStartColor(pixelPos, startR, startG, startB) {
+          let r = outlineLayerData.data[pixelPos];
+          let g = outlineLayerData.data[pixelPos + 1];
+          let b = outlineLayerData.data[pixelPos + 2];
+          const a = outlineLayerData.data[pixelPos + 3];
+          if (matchOutlineColor(r, g, b, a)) {
+            return false;
+          }
+          r = colorLayerData.data[pixelPos];
+          g = colorLayerData.data[pixelPos + 1];
+          b = colorLayerData.data[pixelPos + 2];
+          if (r === startR && g === startG && b === startB) {
+            return true;
+          }
+          if (r === curColor.r && g === curColor.g && b === curColor.b) {
+            return false;
+          }
+          return (Math.abs(r - startR) + Math.abs(g - startG) + Math.abs(b - startB) < 255);
+        }
+
+        function colorPixel(pixelPos, r, g, b, a) {
+          colorLayerData.data[pixelPos] = r;
+          colorLayerData.data[pixelPos + 1] = g;
+          colorLayerData.data[pixelPos + 2] = b;
+          colorLayerData.data[pixelPos + 3] = a !== undefined ? a : 255;
+        }
+
+        function floodFill(startX, startY, startR, startG, startB) {
+          let newPos;
+          let x;
+          let y;
+          let pixelPos;
+          let reachLeft;
+          let reachRight;
+          const drawingBoundLeft = 0;
+          const drawingBoundTop = 0;
+          const drawingBoundRight = drawingAreaWidth - 1;
+          const drawingBoundBottom = drawingAreaHeight - 1;
+          const pixelStack = [[startX, startY]];
+          while (pixelStack.length) {
+            newPos = pixelStack.pop();
+            [x, y] = [newPos[0], newPos[1]];
+            pixelPos = (y * drawingAreaWidth + x) * 4;
+            while (y >= drawingBoundTop && matchStartColor(pixelPos, startR, startG, startB)) {
+              y -= 1;
+              pixelPos -= drawingAreaWidth * 4;
+            }
+            pixelPos += drawingAreaWidth * 4;
+            y += 1;
+            reachLeft = false;
+            reachRight = false;
+            while (y <= drawingBoundBottom && matchStartColor(pixelPos, startR, startG, startB)) {
+              y += 1;
+              colorPixel(pixelPos, curColor.r, curColor.g, curColor.b);
+              if (x > drawingBoundLeft) {
+                if (matchStartColor(pixelPos - 4, startR, startG, startB)) {
+                  if (!reachLeft) {
+                    pixelStack.push([x - 1, y]);
+                    reachLeft = true;
                   }
-        
-                  if (x < drawingBoundRight) {
-                    if (matchStartColor(pixelPos + 4, startR, startG, startB)) {
-                      if (!reachRight) {
-                        pixelStack.push([x + 1, y]);
-                        reachRight = true;
-                      }
-                    } else if (reachRight) {
-                      reachRight = false;
-                    }
-                  }
-        
-                  pixelPos += drawingAreaWidth * 4;
+                } else if (reachLeft) {
+                  reachLeft = false;
                 }
               }
-            };
-        
-            function paintAt(startX, startY) {                
-              let pixelPos = (startY * drawingAreaWidth + startX) * 4,
-              
-                r = colorLayerData.data[pixelPos],
-                g = colorLayerData.data[pixelPos + 1],
-                b = colorLayerData.data[pixelPos + 2],
-                a = colorLayerData.data[pixelPos + 3];
 
-              if ((r === curColor.r && g === curColor.g && b === curColor.b) && (r !== 0 && g !== 0 && b !== 0)) {
-               return;
-              }      
-              if (matchOutlineColor(r, g, b, a)) {
-                return;
-              }        
-              floodFill(startX, startY, r, g, b);
-            };
+              if (x < drawingBoundRight) {
+                if (matchStartColor(pixelPos + 4, startR, startG, startB)) {
+                  if (!reachRight) {
+                    pixelStack.push([x + 1, y]);
+                    reachRight = true;
+                  }
+                } else if (reachRight) {
+                  reachRight = false;
+                }
+              }
 
-          paintAt(e.offsetX, e.offsetY);
-          contexts.drawing.putImageData(colorLayerData, 0, 0, 0, 0, drawingAreaWidth, drawingAreaHeight);
-  
+              pixelPos += drawingAreaWidth * 4;
+            }
+          }
+        }
+
+        function paintAt(startX, startY) {
+          const pixelPos = (startY * drawingAreaWidth + startX) * 4;
+
+          const r = colorLayerData.data[pixelPos];
+          const g = colorLayerData.data[pixelPos + 1];
+          const b = colorLayerData.data[pixelPos + 2];
+          const a = colorLayerData.data[pixelPos + 3];
+
+          if ((r === curColor.r && g === curColor.g && b === curColor.b) && (r !== 0 && g !== 0 && b !== 0)) {
+            return;
+          }
+          if (matchOutlineColor(r, g, b, a)) {
+            return;
+          }
+          floodFill(startX, startY, r, g, b);
+        }
+
+        paintAt(e.offsetX, e.offsetY);
+        contexts.drawing.putImageData(colorLayerData, 0, 0, 0, 0, drawingAreaWidth, drawingAreaHeight);
       });
     }
   }
 
-  saveToLocalStorage(){
-    const objToLocal = {};
-    objToLocal.color = this.color;
-    objToLocal.secondaryColor = this.secondaryColor;
-    objToLocal.frames = [];
-    const framesElement = document.getElementById('frame-container').children;
-    const arrayFrames = Array.from(framesElement);
-    arrayFrames.forEach((el) => {
-      objToLocal.frames.push(el.children[0].toDataURL());
+  saveToLocalStorage() {
+    const addtols = document.getElementById('addstorage');
+    addtols.addEventListener('click', () => {
+      localStorage.clear();
+      const objToLocal = {};
+      objToLocal.color = this.color;
+      objToLocal.secondaryColor = this.secondaryColor;
+      objToLocal.frames = [];
+      const framesElement = document.getElementById('frame-container').children;
+      const arrayFrames = Array.from(framesElement);
+      arrayFrames.forEach((el) => {
+        objToLocal.frames.push(el.children[0].toDataURL());
+      });
+      localStorage.setItem('currentState', JSON.stringify(objToLocal));
     });
-    localStorage.setItem('currentState', JSON.stringify(objToLocal));
-    console.log(objToLocal);
+    App.clearStorage();
   }
 
-  restoreFromLocalStorage(){
-    const state = localStorage.getItem('currentState');
-    if(state !== null){
-      const stateObject = JSON.parse(state);
+  restoreFromLocalStorage() {
+    const frames = document.getElementById('frame-container');
+    if (this.state !== null) {
+      const stateObject = JSON.parse(this.state);
       const colors = document.getElementById('colors-container');
-      if(stateObject.color){
+      if (stateObject.color) {
         this.color = stateObject.color;
         colors.children[0].value = this.color;
       }
-      if(stateObject.secondaryColor){
+      if (stateObject.secondaryColor) {
         this.secondaryColor = stateObject.secondaryColor;
         colors.children[1].value = this.secondaryColor;
       }
-      
+      if (stateObject.frames.length) {
+        let i = 0;
+        stateObject.frames.forEach((el) => {
+          const frame = document.createElement('div');
+          const canv = frames.children[i].children[0];
+          const ctx = canv.getContext('2d');
+          const img = new Image();
+          img.src = el;
+          img.onload = function load() {
+            ctx.drawImage(img, 0, 0);
+          };
+          i += 1;
+          frame.setAttribute('class', 'preview-canvas canvas-preview-item');
+          frame.innerHTML = `<canvas width="704px" height="704px"></canvas>
+            <div class="frame-manager">
+            <div class="delete"></div>
+            <div class="copy"></div>
+            <div class="drag"></div>
+            </div>`;
+          frames.appendChild(frame);
+        });
+        this.flag = true;
+        this.drawPreview();
+      }
     }
+  }
+
+  static clearStorage() {
+    const strg = document.getElementById('clearstorage');
+    strg.addEventListener('click', () => {
+      localStorage.clear();
+    });
   }
 }

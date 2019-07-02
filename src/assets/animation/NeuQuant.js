@@ -27,21 +27,20 @@
  * @version 0.1 AS3 implementation
  */
 
-NeuQuant = function() {
+NeuQuant = function () {
+  const exports = {};
+  const netsize = 256; /* number of colours used */
 
-	var exports = {};
-	var netsize = 256; /* number of colours used */
+  /* four primes near 500 - assume no image has a length so large */
+  /* that it is divisible by all four primes */
 
-	/* four primes near 500 - assume no image has a length so large */
-	/* that it is divisible by all four primes */
+  const prime1 = 499;
+  const prime2 = 491;
+  const prime3 = 487;
+  const prime4 = 503;
+  const minpicturebytes = (3 * prime4); /* minimum size for input image */
 
-	var prime1 = 499;
-	var prime2 = 491;
-	var prime3 = 487;
-	var prime4 = 503;
-	var minpicturebytes = (3 * prime4); /* minimum size for input image */
-
-	/*
+  /*
 	 * Program Skeleton ---------------- [select samplefac in range 1..30] [read
 	 * image from input file] pic = (unsigned char*) malloc(3*width*height);
 	 * initnet(pic,3*width*height,samplefac); learn(); unbiasnet(); [write output
@@ -49,481 +48,457 @@ NeuQuant = function() {
 	 * inxsearch(b,g,r)
 	 */
 
-	/*
+  /*
 	 * Network Definitions -------------------
 	 */
 
-	var maxnetpos = (netsize - 1);
-	var netbiasshift = 4; /* bias for colour values */
-	var ncycles = 100; /* no. of learning cycles */
+  const maxnetpos = (netsize - 1);
+  const netbiasshift = 4; /* bias for colour values */
+  const ncycles = 100; /* no. of learning cycles */
 
-	/* defs for freq and bias */
-	var intbiasshift = 16; /* bias for fractions */
-	var intbias = (1 << intbiasshift);
-	var gammashift = 10; /* gamma = 1024 */
-	var gamma = (1 << gammashift);
-	var betashift = 10;
-	var beta = (intbias >> betashift); /* beta = 1/1024 */
-	var betagamma = (intbias << (gammashift - betashift));
+  /* defs for freq and bias */
+  const intbiasshift = 16; /* bias for fractions */
+  const intbias = (1 << intbiasshift);
+  const gammashift = 10; /* gamma = 1024 */
+  const gamma = (1 << gammashift);
+  const betashift = 10;
+  const beta = (intbias >> betashift); /* beta = 1/1024 */
+  const betagamma = (intbias << (gammashift - betashift));
 
-	/* defs for decreasing radius factor */
-	var initrad = (netsize >> 3); /* for 256 cols, radius starts */
-	var radiusbiasshift = 6; /* at 32.0 biased by 6 bits */
-	var radiusbias = (1 << radiusbiasshift);
-	var initradius = (initrad * radiusbias); /* and decreases by a */
-	var radiusdec = 30; /* factor of 1/30 each cycle */
+  /* defs for decreasing radius factor */
+  const initrad = (netsize >> 3); /* for 256 cols, radius starts */
+  const radiusbiasshift = 6; /* at 32.0 biased by 6 bits */
+  const radiusbias = (1 << radiusbiasshift);
+  const initradius = (initrad * radiusbias); /* and decreases by a */
+  const radiusdec = 30; /* factor of 1/30 each cycle */
 
-	/* defs for decreasing alpha factor */
-	var alphabiasshift = 10; /* alpha starts at 1.0 */
-	var initalpha = (1 << alphabiasshift);
-	var alphadec; /* biased by 10 bits */
+  /* defs for decreasing alpha factor */
+  const alphabiasshift = 10; /* alpha starts at 1.0 */
+  const initalpha = (1 << alphabiasshift);
+  let alphadec; /* biased by 10 bits */
 
-	/* radbias and alpharadbias used for radpower calculation */
-	var radbiasshift = 8;
-	var radbias = (1 << radbiasshift);
-	var alpharadbshift = (alphabiasshift + radbiasshift);
-	var alpharadbias = (1 << alpharadbshift);
+  /* radbias and alpharadbias used for radpower calculation */
+  const radbiasshift = 8;
+  const radbias = (1 << radbiasshift);
+  const alpharadbshift = (alphabiasshift + radbiasshift);
+  const alpharadbias = (1 << alpharadbshift);
 
-	/*
+  /*
 	 * Types and Global Variables --------------------------
 	 */
 
-	var thepicture; /* the input image itself */
-	var lengthcount; /* lengthcount = H*W*3 */
-	var samplefac; /* sampling factor 1..30 */
+  let thepicture; /* the input image itself */
+  let lengthcount; /* lengthcount = H*W*3 */
+  let samplefac; /* sampling factor 1..30 */
 
-	// typedef int pixel[4]; /* BGRc */
-	var network; /* the network itself - [netsize][4] */
-	var netindex = [];
+  // typedef int pixel[4]; /* BGRc */
+  let network; /* the network itself - [netsize][4] */
+  const netindex = [];
 
-	/* for network lookup - really 256 */
-	var bias = [];
+  /* for network lookup - really 256 */
+  const bias = [];
 
-	/* bias and freq arrays for learning */
-	var freq = [];
-	var radpower = [];
+  /* bias and freq arrays for learning */
+  const freq = [];
+  const radpower = [];
 
-	var NeuQuant = exports.NeuQuant = function NeuQuant(thepic, len, sample) {
+  const NeuQuant = exports.NeuQuant = function NeuQuant(thepic, len, sample) {
+    let i;
+    let p;
 
-		var i;
-		var p;
+    thepicture = thepic;
+    lengthcount = len;
+    samplefac = sample;
 
-		thepicture = thepic;
-		lengthcount = len;
-		samplefac = sample;
+    network = new Array(netsize);
 
-		network = new Array(netsize);
+    for (i = 0; i < netsize; i++) {
+      network[i] = new Array(4);
+      p = network[i];
+      p[0] = p[1] = p[2] = (i << (netbiasshift + 8)) / netsize;
+      freq[i] = intbias / netsize; /* 1/netsize */
+      bias[i] = 0;
+    }
+  };
 
-		for (i = 0; i < netsize; i++) {
+  const colorMap = function colorMap() {
+    const map = [];
+    const index = new Array(netsize);
 
-			network[i] = new Array(4);
-			p = network[i];
-			p[0] = p[1] = p[2] = (i << (netbiasshift + 8)) / netsize;
-			freq[i] = intbias / netsize; /* 1/netsize */
-			bias[i] = 0;
-		}
-	};
+    for (let i = 0; i < netsize; i++) index[network[i][3]] = i;
 
-	var colorMap = function colorMap() {
+    let k = 0;
+    for (let l = 0; l < netsize; l++) {
+      const j = index[l];
+      map[k++] = (network[j][0]);
+      map[k++] = (network[j][1]);
+      map[k++] = (network[j][2]);
+    }
 
-		var map = [];
-		var index = new Array(netsize);
+    return map;
+  };
 
-		for (var i = 0; i < netsize; i++)
-			index[network[i][3]] = i;
-
-		var k = 0;
-		for (var l = 0; l < netsize; l++) {
-			var j = index[l];
-			map[k++] = (network[j][0]);
-			map[k++] = (network[j][1]);
-			map[k++] = (network[j][2]);
-		}
-
-		return map;
-	};
-
-	/*
+  /*
 	 * Insertion sort of network and building of netindex[0..255] (to do after
 	 * unbias)
 	 * -------------------------------------------------------------------------------
 	 */
 
-	var inxbuild = function inxbuild() {
+  const inxbuild = function inxbuild() {
+    let i;
+    let j;
+    let smallpos;
+    let smallval;
+    let p;
+    let q;
+    let previouscol;
+    let startpos;
 
-		var i;
-		var j;
-		var smallpos;
-		var smallval;
-		var p;
-		var q;
-		var previouscol;
-		var startpos;
+    previouscol = 0;
+    startpos = 0;
+    for (i = 0; i < netsize; i++) {
+      p = network[i];
+      smallpos = i;
+      smallval = p[1]; /* index on g */
 
-		previouscol = 0;
-		startpos = 0;
-		for (i = 0; i < netsize; i++) {
+      /* find smallest in i..netsize-1 */
+      for (j = i + 1; j < netsize; j++) {
+        q = network[j];
+        if (q[1] < smallval) { /* index on g */
+          smallpos = j;
+          smallval = q[1]; /* index on g */
+        }
+      }
+      q = network[smallpos];
 
-			p = network[i];
-			smallpos = i;
-			smallval = p[1]; /* index on g */
+      /* swap p (i) and q (smallpos) entries */
+      if (i != smallpos) {
+        j = q[0];
+        q[0] = p[0];
+        p[0] = j;
+        j = q[1];
+        q[1] = p[1];
+        p[1] = j;
+        j = q[2];
+        q[2] = p[2];
+        p[2] = j;
+        j = q[3];
+        q[3] = p[3];
+        p[3] = j;
+      }
 
-			/* find smallest in i..netsize-1 */
-			for (j = i + 1; j < netsize; j++) {
+      /* smallval entry is now in position i */
 
-				q = network[j];
-				if (q[1] < smallval) { /* index on g */
-					smallpos = j;
-					smallval = q[1]; /* index on g */
-				}
-			}
-			q = network[smallpos];
+      if (smallval != previouscol) {
+        netindex[previouscol] = (startpos + i) >> 1;
 
-			/* swap p (i) and q (smallpos) entries */
-			if (i != smallpos) {
-				j = q[0];
-				q[0] = p[0];
-				p[0] = j;
-				j = q[1];
-				q[1] = p[1];
-				p[1] = j;
-				j = q[2];
-				q[2] = p[2];
-				p[2] = j;
-				j = q[3];
-				q[3] = p[3];
-				p[3] = j;
-			}
+        for (j = previouscol + 1; j < smallval; j++) netindex[j] = i;
 
-			/* smallval entry is now in position i */
+        previouscol = smallval;
+        startpos = i;
+      }
+    }
 
-			if (smallval != previouscol) {
+    netindex[previouscol] = (startpos + maxnetpos) >> 1;
+    for (j = previouscol + 1; j < 256; j++) netindex[j] = maxnetpos; /* really 256 */
+  };
 
-				netindex[previouscol] = (startpos + i) >> 1;
-
-				for (j = previouscol + 1; j < smallval; j++) netindex[j] = i;
-
-				previouscol = smallval;
-				startpos = i;
-			}
-		}
-
-		netindex[previouscol] = (startpos + maxnetpos) >> 1;
-		for (j = previouscol + 1; j < 256; j++) netindex[j] = maxnetpos; /* really 256 */
-	};
-
-	/*
+  /*
 	 * Main Learning Loop ------------------
 	 */
 
-	var learn = function learn() {
+  const learn = function learn() {
+    let i;
+    let j;
+    let b;
+    let g;
+    let r;
+    let radius;
+    let rad;
+    let alpha;
+    let step;
+    let delta;
+    let samplepixels;
+    let p;
+    let pix;
+    let lim;
 
-		var i;
-		var j;
-		var b;
-		var g;
-		var r;
-		var radius;
-		var rad;
-		var alpha;
-		var step;
-		var delta;
-		var samplepixels;
-		var p;
-		var pix;
-		var lim;
+    if (lengthcount < minpicturebytes) samplefac = 1;
 
-		if (lengthcount < minpicturebytes) samplefac = 1;
+    alphadec = 30 + ((samplefac - 1) / 3);
+    p = thepicture;
+    pix = 0;
+    lim = lengthcount;
+    samplepixels = lengthcount / (3 * samplefac);
+    delta = (samplepixels / ncycles) | 0;
+    alpha = initalpha;
+    radius = initradius;
 
-		alphadec = 30 + ((samplefac - 1) / 3);
-		p = thepicture;
-		pix = 0;
-		lim = lengthcount;
-		samplepixels = lengthcount / (3 * samplefac);
-		delta = (samplepixels / ncycles) | 0;
-		alpha = initalpha;
-		radius = initradius;
+    rad = radius >> radiusbiasshift;
+    if (rad <= 1) rad = 0;
 
-		rad = radius >> radiusbiasshift;
-		if (rad <= 1) rad = 0;
+    for (i = 0; i < rad; i++) radpower[i] = alpha * (((rad * rad - i * i) * radbias) / (rad * rad));
 
-		for (i = 0; i < rad; i++) radpower[i] = alpha * (((rad * rad - i * i) * radbias) / (rad * rad));
+    if (lengthcount < minpicturebytes) step = 3;
 
-		if (lengthcount < minpicturebytes) step = 3;
+    else if ((lengthcount % prime1) !== 0) step = 3 * prime1;
 
-		else if ((lengthcount % prime1) !== 0) step = 3 * prime1;
+    else if ((lengthcount % prime2) !== 0) step = 3 * prime2;
+    else if ((lengthcount % prime3) !== 0) step = 3 * prime3;
+    else step = 3 * prime4;
 
-		else {
+    i = 0;
+    while (i < samplepixels) {
+      b = (p[pix + 0] & 0xff) << netbiasshift;
+      g = (p[pix + 1] & 0xff) << netbiasshift;
+      r = (p[pix + 2] & 0xff) << netbiasshift;
+      j = contest(b, g, r);
 
-			if ((lengthcount % prime2) !== 0) step = 3 * prime2;
-			else {
-				if ((lengthcount % prime3) !== 0) step = 3 * prime3;
-				else step = 3 * prime4;
-			}
-		}
+      altersingle(alpha, j, b, g, r);
+      if (rad !== 0) alterneigh(rad, j, b, g, r); /* alter neighbours */
 
-		i = 0;
-		while (i < samplepixels) {
+      pix += step;
+      if (pix >= lim) pix -= lengthcount;
 
-			b = (p[pix + 0] & 0xff) << netbiasshift;
-			g = (p[pix + 1] & 0xff) << netbiasshift;
-			r = (p[pix + 2] & 0xff) << netbiasshift;
-			j = contest(b, g, r);
+      i++;
 
-			altersingle(alpha, j, b, g, r);
-			if (rad !== 0) alterneigh(rad, j, b, g, r); /* alter neighbours */
+      if (delta === 0) delta = 1;
 
-			pix += step;
-			if (pix >= lim) pix -= lengthcount;
+      if (i % delta === 0) {
+        alpha -= alpha / alphadec;
+        radius -= radius / radiusdec;
+        rad = radius >> radiusbiasshift;
 
-			i++;
+        if (rad <= 1) rad = 0;
 
-			if (delta === 0) delta = 1;
+        for (j = 0; j < rad; j++) radpower[j] = alpha * (((rad * rad - j * j) * radbias) / (rad * rad));
+      }
+    }
+  };
 
-			if (i % delta === 0) {
-				alpha -= alpha / alphadec;
-				radius -= radius / radiusdec;
-				rad = radius >> radiusbiasshift;
-
-				if (rad <= 1) rad = 0;
-
-				for (j = 0; j < rad; j++) radpower[j] = alpha * (((rad * rad - j * j) * radbias) / (rad * rad));
-			}
-		}
-	};
-
-	/*
+  /*
 	 ** Search for BGR values 0..255 (after net is unbiased) and return colour
 	 * index
 	 * ----------------------------------------------------------------------------
 	 */
 
-	var map = exports.map = function map(b, g, r) {
+  const map = exports.map = function map(b, g, r) {
+    let i;
+    let j;
+    let dist;
+    let a;
+    let bestd;
+    let p;
+    let best;
 
-		var i;
-		var j;
-		var dist;
-		var a;
-		var bestd;
-		var p;
-		var best;
+    bestd = 1000; /* biggest possible dist is 256*3 */
+    best = -1;
+    i = netindex[g]; /* index on g */
+    j = i - 1; /* start at netindex[g] and work outwards */
 
-		bestd = 1000; /* biggest possible dist is 256*3 */
-		best = -1;
-		i = netindex[g]; /* index on g */
-		j = i - 1; /* start at netindex[g] and work outwards */
+    while ((i < netsize) || (j >= 0)) {
+      if (i < netsize) {
+        p = network[i];
+        dist = p[1] - g; /* inx key */
 
-		while ((i < netsize) || (j >= 0)) {
+        if (dist >= bestd) i = netsize; /* stop iter */
 
-			if (i < netsize) {
-				p = network[i];
-				dist = p[1] - g; /* inx key */
+        else {
+          i++;
+          if (dist < 0) dist = -dist;
+          a = p[0] - b;
+          if (a < 0) a = -a;
+          dist += a;
 
-				if (dist >= bestd) i = netsize; /* stop iter */
+          if (dist < bestd) {
+            a = p[2] - r;
+            if (a < 0) a = -a;
+            dist += a;
 
-				else {
+            if (dist < bestd) {
+              bestd = dist;
+              best = p[3];
+            }
+          }
+        }
+      }
 
-					i++;
-					if (dist < 0) dist = -dist;
-					a = p[0] - b;
-					if (a < 0) a = -a;
-					dist += a;
+      if (j >= 0) {
+        p = network[j];
+        dist = g - p[1]; /* inx key - reverse dif */
 
-					if (dist < bestd) {
-						a = p[2] - r;
-						if (a < 0) a = -a;
-						dist += a;
+        if (dist >= bestd) j = -1; /* stop iter */
 
-						if (dist < bestd) {
-							bestd = dist;
-							best = p[3];
-						}
-					}
-				}
-			}
+        else {
+          j--;
+          if (dist < 0) dist = -dist;
+          a = p[0] - b;
+          if (a < 0) a = -a;
+          dist += a;
 
-			if (j >= 0) {
+          if (dist < bestd) {
+            a = p[2] - r;
+            if (a < 0) a = -a;
+            dist += a;
+            if (dist < bestd) {
+              bestd = dist;
+              best = p[3];
+            }
+          }
+        }
+      }
+    }
 
-				p = network[j];
-				dist = g - p[1]; /* inx key - reverse dif */
+    return (best);
+  };
 
-				if (dist >= bestd) j = -1; /* stop iter */
+  const process = exports.process = function process() {
+    learn();
+    unbiasnet();
+    inxbuild();
+    return colorMap();
+  };
 
-				else {
-
-					j--;
-					if (dist < 0) dist = -dist;
-					a = p[0] - b;
-					if (a < 0) a = -a;
-					dist += a;
-
-					if (dist < bestd) {
-						a = p[2] - r;
-						if (a < 0) a = -a;
-						dist += a;
-						if (dist < bestd) {
-							bestd = dist;
-							best = p[3];
-						}
-					}
-				}
-			}
-		}
-
-		return (best);
-	};
-
-	var process = exports.process = function process() {
-		learn();
-		unbiasnet();
-		inxbuild();
-		return colorMap();
-	};
-
-	/*
+  /*
 	 * Unbias network to give byte values 0..255 and record position i to prepare
 	 * for sort
 	 * -----------------------------------------------------------------------------------
 	 */
 
-	var unbiasnet = function unbiasnet() {
+  var unbiasnet = function unbiasnet() {
+    let i;
+    let j;
 
-		var i;
-		var j;
+    for (i = 0; i < netsize; i++) {
+      network[i][0] >>= netbiasshift;
+      network[i][1] >>= netbiasshift;
+      network[i][2] >>= netbiasshift;
+      network[i][3] = i; /* record colour no */
+    }
+  };
 
-		for (i = 0; i < netsize; i++) {
-			network[i][0] >>= netbiasshift;
-			network[i][1] >>= netbiasshift;
-			network[i][2] >>= netbiasshift;
-			network[i][3] = i; /* record colour no */
-		}
-	};
-
-	/*
+  /*
 	 * Move adjacent neurons by precomputed alpha*(1-((i-j)^2/[r]^2)) in
 	 * radpower[|i-j|]
 	 * ---------------------------------------------------------------------------------
 	 */
 
-	var alterneigh = function alterneigh(rad, i, b, g, r) {
+  var alterneigh = function alterneigh(rad, i, b, g, r) {
+    let j;
+    let k;
+    let lo;
+    let hi;
+    let a;
+    let m;
+    let p;
 
-		var j;
-		var k;
-		var lo;
-		var hi;
-		var a;
-		var m;
-		var p;
+    lo = i - rad;
+    if (lo < -1) lo = -1;
 
-		lo = i - rad;
-		if (lo < -1) lo = -1;
+    hi = i + rad;
+    if (hi > netsize) hi = netsize;
 
-		hi = i + rad;
-		if (hi > netsize) hi = netsize;
+    j = i + 1;
+    k = i - 1;
+    m = 1;
 
-		j = i + 1;
-		k = i - 1;
-		m = 1;
+    while ((j < hi) || (k > lo)) {
+      a = radpower[m++];
 
-		while ((j < hi) || (k > lo)) {
-			a = radpower[m++];
+      if (j < hi) {
+        p = network[j++];
 
-			if (j < hi) {
-				p = network[j++];
+        try {
+          p[0] -= (a * (p[0] - b)) / alpharadbias;
+          p[1] -= (a * (p[1] - g)) / alpharadbias;
+          p[2] -= (a * (p[2] - r)) / alpharadbias;
+        } catch (e) {} // prevents 1.3 miscompilation
+      }
 
-				try {
-					p[0] -= (a * (p[0] - b)) / alpharadbias;
-					p[1] -= (a * (p[1] - g)) / alpharadbias;
-					p[2] -= (a * (p[2] - r)) / alpharadbias;
-				} catch (e) {} // prevents 1.3 miscompilation
-			}
+      if (k > lo) {
+        p = network[k--];
 
-			if (k > lo) {
-				p = network[k--];
+        try {
+          p[0] -= (a * (p[0] - b)) / alpharadbias;
+          p[1] -= (a * (p[1] - g)) / alpharadbias;
+          p[2] -= (a * (p[2] - r)) / alpharadbias;
+        } catch (e) {}
+      }
+    }
+  };
 
-				try {
-					p[0] -= (a * (p[0] - b)) / alpharadbias;
-					p[1] -= (a * (p[1] - g)) / alpharadbias;
-					p[2] -= (a * (p[2] - r)) / alpharadbias;
-				} catch (e) {}
-			}
-		}
-	};
-
-	/*
+  /*
 	 * Move neuron i towards biased (b,g,r) by factor alpha
 	 * ----------------------------------------------------
 	 */
 
-	var altersingle = function altersingle(alpha, i, b, g, r) {
+  var altersingle = function altersingle(alpha, i, b, g, r) {
+    /* alter hit neuron */
+    const n = network[i];
+    n[0] -= (alpha * (n[0] - b)) / initalpha;
+    n[1] -= (alpha * (n[1] - g)) / initalpha;
+    n[2] -= (alpha * (n[2] - r)) / initalpha;
+  };
 
-		/* alter hit neuron */
-		var n = network[i];
-		n[0] -= (alpha * (n[0] - b)) / initalpha;
-		n[1] -= (alpha * (n[1] - g)) / initalpha;
-		n[2] -= (alpha * (n[2] - r)) / initalpha;
-	};
-
-	/*
+  /*
 	 * Search for biased BGR values ----------------------------
 	 */
 
-	var contest = function contest(b, g, r) {
+  var contest = function contest(b, g, r) {
+    /* finds closest neuron (min dist) and updates freq */
+    /* finds best neuron (min dist-bias) and returns position */
+    /* for frequently chosen neurons, freq[i] is high and bias[i] is negative */
+    /* bias[i] = gamma*((1/netsize)-freq[i]) */
 
-		/* finds closest neuron (min dist) and updates freq */
-		/* finds best neuron (min dist-bias) and returns position */
-		/* for frequently chosen neurons, freq[i] is high and bias[i] is negative */
-		/* bias[i] = gamma*((1/netsize)-freq[i]) */
+    let i;
+    let dist;
+    let a;
+    let biasdist;
+    let betafreq;
+    let bestpos;
+    let bestbiaspos;
+    let bestd;
+    let bestbiasd;
+    let n;
 
-		var i;
-		var dist;
-		var a;
-		var biasdist;
-		var betafreq;
-		var bestpos;
-		var bestbiaspos;
-		var bestd;
-		var bestbiasd;
-		var n;
+    bestd = ~(1 << 31);
+    bestbiasd = bestd;
+    bestpos = -1;
+    bestbiaspos = bestpos;
 
-		bestd = ~ (1 << 31);
-		bestbiasd = bestd;
-		bestpos = -1;
-		bestbiaspos = bestpos;
+    for (i = 0; i < netsize; i++) {
+      n = network[i];
+      dist = n[0] - b;
+      if (dist < 0) dist = -dist;
+      a = n[1] - g;
+      if (a < 0) a = -a;
+      dist += a;
+      a = n[2] - r;
+      if (a < 0) a = -a;
+      dist += a;
 
-		for (i = 0; i < netsize; i++) {
-			n = network[i];
-			dist = n[0] - b;
-			if (dist < 0) dist = -dist;
-			a = n[1] - g;
-			if (a < 0) a = -a;
-			dist += a;
-			a = n[2] - r;
-			if (a < 0) a = -a;
-			dist += a;
+      if (dist < bestd) {
+        bestd = dist;
+        bestpos = i;
+      }
 
-			if (dist < bestd) {
-				bestd = dist;
-				bestpos = i;
-			}
+      biasdist = dist - ((bias[i]) >> (intbiasshift - netbiasshift));
 
-			biasdist = dist - ((bias[i]) >> (intbiasshift - netbiasshift));
+      if (biasdist < bestbiasd) {
+        bestbiasd = biasdist;
+        bestbiaspos = i;
+      }
 
-			if (biasdist < bestbiasd) {
-				bestbiasd = biasdist;
-				bestbiaspos = i;
-			}
+      betafreq = (freq[i] >> betashift);
+      freq[i] -= betafreq;
+      bias[i] += (betafreq << gammashift);
+    }
 
-			betafreq = (freq[i] >> betashift);
-			freq[i] -= betafreq;
-			bias[i] += (betafreq << gammashift);
-		}
+    freq[bestpos] += beta;
+    bias[bestpos] -= betagamma;
+    return (bestbiaspos);
+  };
 
-		freq[bestpos] += beta;
-		bias[bestpos] -= betagamma;
-		return (bestbiaspos);
-	};
-
-	NeuQuant.apply(this, arguments);
-	return exports;
+  NeuQuant.apply(this, arguments);
+  return exports;
 };
