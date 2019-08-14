@@ -60,6 +60,9 @@
       .canvas-overlay
         z-index: 1
         background-image: url('./img/canvas_bg.png')
+        width: 100%
+        height: 100%
+        image-rendering: pixelated
 
 
 
@@ -252,4 +255,20 @@
         text-align: center
         &:hover
           cursor: pointer
+    .size-switcher
+        margin-top: 20px
+        display: grid
+        width: 100%
+        justify-content: space-around
+        grid-gap: 20px
+        .size
+            width: 60px
+            height: 20px
+            display: block
+            text-align: center
+            background-color:  darken(#666, 10%) 
+            border: 2px solid
+            border-color: darken(#666, 10%) 
+        .active
+            border-color: yellow
           

@@ -2,10 +2,17 @@ import LZW from '../assets/animation/LZWEncoder.js';
 import Neu from '../assets/animation/NeuQuant.js';
 import b64 from '../assets/animation/base64.js';
 
+import {
+  getCoord,
+  rgbToHex,
+  getCtx,
+} from './utils';
+
 export default class App {
   constructor() {
     this.currentTool = 'pen';
-    this.toolSize = '24';
+    this.toolSize = '1';
+    this.canvasSize = '32';
     this.color = '#000000';
     this.offsetX = null;
     this.offsetY = null;
@@ -23,7 +30,6 @@ export default class App {
 
   toolPicker() {
     const tools = document.getElementById('tools');
-    const scope = this;
     const child = Array.from(tools.children);
     function setCurrentTool(e) {
       const tool = e.target.getAttribute('id') || false;
@@ -37,65 +43,66 @@ export default class App {
       }
       switch (tool) {
         case 'pen':
-          scope.currentTool = 'pen';
+          this.currentTool = 'pen';
           setTool();
-          scope.drawPen();
+          this.drawPen();
           break;
         case 'color-select':
-          scope.currentTool = 'color-select';
+          this.currentTool = 'color-select';
           setTool();
-          scope.colorPicker();
+          this.colorPicker();
           break;
         case 'paint-bucket':
-          scope.currentTool = 'paint-bucket';
+          this.currentTool = 'paint-bucket';
           setTool();
-          scope.paintBucket();
+          this.paintBucket();
           break;
         case 'eraser':
-          scope.currentTool = 'eraser';
+          this.currentTool = 'eraser';
           setTool();
-          scope.eraser();
+          this.eraser();
           break;
         default:
       }
+      console.log(this.currentTool);
     }
-    tools.addEventListener('click', setCurrentTool);
+    tools.addEventListener('click', setCurrentTool.bind(this));
   }
 
 
-  hoverToMove() {
-    const cursor = document.getElementById('cursor');
-    const canv = document.getElementById('canvas-overlay');
-    const previousRect = {
-      x: 0,
-      y: 0,
-    };
-    const lastCoordinate = {
-      x: 0,
-      y: 0,
-    };
-    canv.addEventListener('mousemove', (e) => {
-      if ((previousRect.x === 0 || previousRect.Y === 0)
-      || Math.abs(lastCoordinate.x - e.offsetX / this.toolSize) > 0.5
-      || Math.abs(lastCoordinate.y - e.offsetY / this.toolSize) > 0.5) {
-        if (this.currentTool !== 'color-select' && this.currentTool !== 'paint-bucket') {
-          lastCoordinate.x = Math.abs(e.offsetX / this.toolSize);
-          lastCoordinate.y = Math.abs(e.offsetY / this.toolSize);
-          cursor.style.left = `${e.offsetX - this.toolSize / 2}px`;
-          cursor.style.top = `${e.offsetY - this.toolSize / 2}px`;
-          cursor.style.display = 'block';
-          this.offsetX = e.offsetX;
-          this.offsetY = e.offsetY;
-          previousRect.x = e.offsetX;
-          previousRect.y = e.offsetY;
-        }
-      }
-    });
-    canv.addEventListener('mouseleave', () => {
-      previousRect.x = 0;
-      previousRect.y = 0;
-    });
-  }
+  // hoverToMove() {
+  //   const cursor = document.getElementById('cursor');
+  //   const canv = document.getElementById('canvas-overlay');
+  //   const previousRect = {
+  //     x: 0,
+  //     y: 0,
+  //   };
+  //   const lastCoordinate = {
+  //     x: 0,
+  //     y: 0,
+  //   };
+  //   canv.addEventListener('mousemove', (e) => {
+  //     if ((previousRect.x === 0 || previousRect.Y === 0)
+  //     || Math.abs(lastCoordinate.x - e.offsetX / this.toolSize) > 0.5
+  //     || Math.abs(lastCoordinate.y - e.offsetY / this.toolSize) > 0.5) {
+  //       if (this.currentTool !== 'color-select' && this.currentTool !== 'paint-bucket') {
+  //         lastCoordinate.x = Math.abs(e.offsetX / this.toolSize);
+  //         lastCoordinate.y = Math.abs(e.offsetY / this.toolSize);
+  //         cursor.style.left = `${e.offsetX - this.toolSize / 2}px`;
+  //         cursor.style.top = `${e.offsetY - this.toolSize / 2}px`;
+  //         cursor.style.display = 'block';
+  //         this.offsetX = e.offsetX;
+  //         this.offsetY = e.offsetY;
+  //         previousRect.x = e.offsetX;
+  //         previousRect.y = e.offsetY;
+  //       }
+  //     }
+  //   });
+  //   canv.addEventListener('mouseleave', () => {
+  //     previousRect.x = 0;
+  //     previousRect.y = 0;
+  //   });
+  // }
 
 
   sizePicker() {
@@ -117,19 +124,19 @@ export default class App {
       }
       switch (size) {
         case 'one':
-          scope.toolSize = '24';
+          scope.toolSize = '1';
           setSize();
           break;
         case 'two':
-          scope.toolSize = '30';
+          scope.toolSize = '2';
           setSize();
           break;
         case 'three':
-          scope.toolSize = '36';
+          scope.toolSize = '3';
           setSize();
           break;
         case 'four':
-          scope.toolSize = '40';
+          scope.toolSize = '4';
           setSize();
           break;
         default:
@@ -140,76 +147,99 @@ export default class App {
 
 
   drawPen() {
-    const canv = document.getElementById('canvas-overlay');
+
     const canvcontainer = document.getElementById('canvas-container');
-    const ctx = canv.getContext('2d');
-    const cursor = document.getElementById('cursor');
-    const current = this;
+    const { ctx } = getCtx('canvas-overlay');
+    // const cursor = document.getElementById('cursor');
+    // const current = this;
     let isMouseDown = false;
-    function draw() {
+    function draw(elem) {
       if (isMouseDown && this.currentTool === 'pen') {
+        const { x, y } = getCoord(elem);
         ctx.fillStyle = this.color;
-        ctx.fillRect(this.offsetX - this.toolSize / 2,
-          this.offsetY - this.toolSize / 2,
+        ctx.fillRect(x, y,
           this.toolSize, this.toolSize);
       }
     }
-    const drawBind = draw.bind(current);
-    cursor.addEventListener('mousedown', () => {
+    const drawBind = draw.bind(this);
+    canvcontainer.addEventListener('mousemove', draw.bind(this));
+    canvcontainer.addEventListener('mousedown', (e) => {
       isMouseDown = true;
-      draw.call(current);
-      canv.addEventListener('mousemove', drawBind);
+      drawBind(e);
     });
-    cursor.addEventListener('mouseup', () => {
+    canvcontainer.addEventListener('mouseup', () => {
       isMouseDown = false;
     });
     canvcontainer.addEventListener('mouseleave', () => {
       isMouseDown = false;
-      canv.removeEventListener('mousemove', drawBind);
     });
-    this.drawPreview();
   }
+  //   function draw() {
+  //     if (isMouseDown && this.currentTool === 'pen') {
+  //       ctx.fillStyle = this.color;
+  //       ctx.fillRect(this.offsetX - this.toolSize / 2,
+  //         this.offsetY - this.toolSize / 2,
+  //         this.toolSize, this.toolSize);
+  //     }
+  //   }
+  //   const drawBind = draw.bind(current);
+  //   cursor.addEventListener('mousedown', () => {
+  //     isMouseDown = true;
+  //     draw.call(current);
+  //     canv.addEventListener('mousemove', drawBind);
+  //   });
+  //   cursor.addEventListener('mouseup', () => {
+  //     isMouseDown = false;
+  //   });
+  //   canvcontainer.addEventListener('mouseleave', () => {
+  //     isMouseDown = false;
+  //     canv.removeEventListener('mousemove', drawBind);
+  //   });
+  //   this.drawPreview();
+  // }
 
   eraser() {
-    const canv = document.getElementById('canvas-overlay');
-    const ctx = canv.getContext('2d');
-    const cursor = document.getElementById('cursor');
-    let isMouseDown = false;
-    const current = this;
-    function erase() {
+    const canvContainer = document.getElementById('canvas-container');
+    const { ctx } = getCtx('canvas-overlay');
+    let isMouseDown = true;
+    function erase(e) {
+      const { x, y } = getCoord(e);
       if (isMouseDown && this.currentTool === 'eraser') {
         ctx.fillStyle = this.color;
-        ctx.clearRect(this.offsetX - this.toolSize / 2,
-          this.offsetY - this.toolSize / 2,
+        ctx.clearRect(x,
+          y,
           this.toolSize, this.toolSize);
       }
     }
-    const eraseBind = erase.bind(current);
-    cursor.addEventListener('mousedown', () => {
-      isMouseDown = true;
-      erase.call(current);
-      canv.addEventListener('mousemove', eraseBind);
-    });
-    cursor.addEventListener('mouseup', () => {
-      isMouseDown = false;
-    });
+    if (this.currentTool === 'eraser') {
+      const eraseBind = erase.bind(this);
+      canvContainer.addEventListener('mousemove', erase.bind(this));
+      canvContainer.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        eraseBind(e);
+      });
+      canvContainer.addEventListener('mouseup', () => {
+        isMouseDown = false;
+      });
+      canvContainer.addEventListener('mouseleave', () => {
+        isMouseDown = false;
+      });
+    }
   }
 
   colorPicker() {
-    function rgbToHex(r, g, b) {
-      return ((r << 16) | (g << 8) | b).toString(16);
-    }
     if (this.currentTool === 'color-select') {
-      const scope = this;
-      const canv = document.getElementById('canvas-overlay');
+      const canvContainer = document.getElementById('canvas-container');
+      const { ctx } = getCtx('canvas-overlay');
       const colors = document.getElementById('colors-container');
-      const ctx = canv.getContext('2d');
       const cursor = document.getElementById('cursor');
       cursor.style.display = 'none';
-      canv.addEventListener('click', (e) => {
-        const color = ctx.getImageData(e.offsetX, e.offsetY, 1, 1).data;
-        scope.color = `#${(`000000${rgbToHex(color[0], color[1], color[2])}`).slice(-6)}`;
-        colors.children[0].value = scope.color;
+      canvContainer.addEventListener('click', (e) => {
+        const { x, y } = getCoord(e);
+        const color = ctx.getImageData(x, y, 1, 1).data;
+        console.log(color);
+        this.color = `#${(`000000${rgbToHex(color[0], color[1], color[2])}`).slice(-6)}`;
+        colors.children[0].value = this.color;
       });
     }
   }
@@ -489,14 +519,16 @@ export default class App {
   }
 
   paintBucket() {
-    if (this.currentTool === 'paint-bucket') {
-      const canv = document.getElementById('canvas-overlay');
-      const ctx = canv.getContext('2d');
-      document.getElementById('cursor').style.display = 'none';
-      canv.addEventListener('click', (e) => {
+    const canvContainer = document.getElementById('canvas-overlay');
+    const { ctx } = getCtx('canvas-overlay');
+    document.getElementById('cursor').style.display = 'none';
+
+    canvContainer.addEventListener('click', (e) => {
+      if (this.currentTool === 'paint-bucket') {
+        const { x, y } = getCoord(e);
         const contexts = {};
-        const drawingAreaWidth = 704;
-        const drawingAreaHeight = 704;
+        const drawingAreaWidth = this.canvasSize;
+        const drawingAreaHeight = this.canvasSize;
         const curColor = hexToRgb(this.color);
         if (curColor.r === 0 && curColor.g === 0 && curColor.b === 0) curColor.b = 1;
         contexts.drawing = ctx;
@@ -610,7 +642,7 @@ export default class App {
           const b = colorLayerData.data[pixelPos + 2];
           const a = colorLayerData.data[pixelPos + 3];
 
-          if ((r === curColor.r && g === curColor.g && b === curColor.b) && (r !== 0 && g !== 0 && b !== 0)) {
+          if ((r === curColor.r && g === curColor.g && b === curColor.b) && (r === 0 && g === 0 && b === 0)) {
             return;
           }
           if (matchOutlineColor(r, g, b, a)) {
@@ -619,10 +651,16 @@ export default class App {
           floodFill(startX, startY, r, g, b);
         }
 
-        paintAt(e.offsetX, e.offsetY);
+        paintAt(x, y);
         contexts.drawing.putImageData(colorLayerData, 0, 0, 0, 0, drawingAreaWidth, drawingAreaHeight);
-      });
-    }
+      }
+
+
+
+
+    });
+
+
   }
 
   saveToLocalStorage() {
@@ -687,6 +725,39 @@ export default class App {
     const strg = document.getElementById('clearstorage');
     strg.addEventListener('click', () => {
       localStorage.clear();
+    });
+  }
+
+  sizeSwitcer() {
+    const switcher = document.getElementById('size-switcher');
+    const canvas = document.getElementById('canvas-overlay');
+    switcher.addEventListener('click', (e) => {
+      switch (e.target.getAttribute('data')) {
+        case '32':
+          this.canvasSize = '32';
+          Array.from(e.target.parentNode.children).forEach((it) => {
+            it.classList.remove('active');
+          });
+          e.target.classList.add('active');
+          break;
+        case '64':
+          this.canvasSize = '64';
+          Array.from(e.target.parentNode.children).forEach((it) => {
+            it.classList.remove('active');
+          });
+          e.target.classList.add('active');
+          break;
+        case '128':
+          this.canvasSize = '128';
+          Array.from(e.target.parentNode.children).forEach((it) => {
+            it.classList.remove('active');
+          });
+          e.target.classList.add('active');
+          break;
+        default:
+      }
+      canvas.setAttribute('width', this.canvasSize);
+      canvas.setAttribute('height', this.canvasSize);
     });
   }
 }
