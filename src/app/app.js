@@ -6,6 +6,8 @@ import {
   getCoord,
   rgbToHex,
   getCtx,
+  hexToRgb,
+  drawLine,
 } from './utils';
 
 export default class App {
@@ -147,25 +149,29 @@ export default class App {
 
 
   drawPen() {
-
     const canvcontainer = document.getElementById('canvas-container');
     const { ctx } = getCtx('canvas-overlay');
-    // const cursor = document.getElementById('cursor');
-    // const current = this;
     let isMouseDown = false;
+    let x;
+    let y;
+
+
     function draw(elem) {
       if (isMouseDown && this.currentTool === 'pen') {
-        const { x, y } = getCoord(elem);
-        ctx.fillStyle = this.color;
-        ctx.fillRect(x, y,
-          this.toolSize, this.toolSize);
+        const color = hexToRgb(this.color);
+        const  x1 = getCoord(elem).x;
+        const  y1 = getCoord(elem).y;
+        drawLine(x, y, x1, y1, color, ctx);
+        x = x1;
+        y = y1;
       }
     }
     const drawBind = draw.bind(this);
     canvcontainer.addEventListener('mousemove', draw.bind(this));
     canvcontainer.addEventListener('mousedown', (e) => {
       isMouseDown = true;
-      drawBind(e);
+      x =  getCoord(e).x;
+      y =  getCoord(e).y;
     });
     canvcontainer.addEventListener('mouseup', () => {
       isMouseDown = false;
@@ -201,7 +207,7 @@ export default class App {
   eraser() {
     const canvContainer = document.getElementById('canvas-container');
     const { ctx } = getCtx('canvas-overlay');
-    let isMouseDown = true;
+    let isMouseDown = false;
     function erase(e) {
       const { x, y } = getCoord(e);
       if (isMouseDown && this.currentTool === 'eraser') {
@@ -642,7 +648,7 @@ export default class App {
           const b = colorLayerData.data[pixelPos + 2];
           const a = colorLayerData.data[pixelPos + 3];
 
-          if ((r === curColor.r && g === curColor.g && b === curColor.b)) {
+          if ((r === curColor.r && g === curColor.g && b === curColor.b) && (r === 0 && g === 0 && b === 0)) {
             return;
           }
           if (matchOutlineColor(r, g, b, a)) {
