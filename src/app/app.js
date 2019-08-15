@@ -642,7 +642,7 @@ export default class App {
           const b = colorLayerData.data[pixelPos + 2];
           const a = colorLayerData.data[pixelPos + 3];
 
-          if ((r === curColor.r && g === curColor.g && b === curColor.b) && (r === 0 && g === 0 && b === 0)) {
+          if ((r === curColor.r && g === curColor.g && b === curColor.b)) {
             return;
           }
           if (matchOutlineColor(r, g, b, a)) {
