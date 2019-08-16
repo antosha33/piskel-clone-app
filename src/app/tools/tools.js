@@ -27,8 +27,11 @@ export default class Tools {
     this.colorPallete();
     toolPicker.call(this);
   }
-
+  set sizeValue(value){
+    this.canvasSize = value;
+  }
   drawPen() {
+
     const canvcontainer = document.getElementById('canvas-container');
     const { ctx } = getCtx('canvas-overlay');
     let isMouseDown = false;

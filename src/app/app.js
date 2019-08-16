@@ -7,6 +7,7 @@ import Tools from './tools/tools';
 export default class App {
   constructor() {
     this.frames = [];
+    this.canvasSize = '32'
     this.stateIsChanged = false;
     App.startAnimation();
     this.frameManager();
@@ -14,26 +15,28 @@ export default class App {
     this.state = localStorage.getItem('currentState');
     this.flag = false;
     App.exportToGif();
-    const tools = new Tools();
+    this.tools = new Tools();
+    this.drawPreview();
   }
 
   drawPreview() {
+    console.log(this.tools.size);
     const canv = document.getElementById('canvas-overlay');
     const frameContainer = document.getElementById('frame-container');
     const preview = frameContainer.children[frameContainer.children.length - 1].children[0];
     const ctxpreview = preview.getContext('2d');
     const newframeButton = document.getElementById('new-frame');
-
-    function moveListener() {
-      ctxpreview.clearRect(0, 0, 704, 704);
+    ctxpreview.clearRect(0, 0,this.canvasSize,this.canvasSize);
+    const moveListener = () => {
+      ctxpreview.clearRect(0, 0,this.canvasSize, this.canvasSize);
       ctxpreview.drawImage(canv, 0, 0);
     }
-    function clickListener() {
-      ctxpreview.clearRect(0, 0, 704, 704);
+    const clickListener = () => {
+      ctxpreview.clearRect(0, 0, this.canvasSize, this.canvasSize);
       ctxpreview.drawImage(canv, 0, 0);
     }
-    function mousedownListener() {
-      ctxpreview.clearRect(0, 0, 704, 704);
+    const mousedownListener = () => {
+      ctxpreview.clearRect(0, 0, this.canvasSize, this.canvasSize);
       ctxpreview.drawImage(canv, 0, 0);
     }
     canv.addEventListener('mousemove', moveListener);
@@ -68,7 +71,7 @@ export default class App {
     newframeButton.addEventListener('click', () => {
       const frame = document.createElement('div');
       frame.setAttribute('class', 'preview-canvas canvas-preview-item');
-      frame.innerHTML = `<canvas width="704px" height="704px"></canvas>
+      frame.innerHTML = `<canvas width="${this.canvasSize}" height="${this.canvasSize}"></canvas>
       <div class="frame-manager">
         <div class="delete"></div>
         <div class="copy"></div>
@@ -337,6 +340,8 @@ export default class App {
   canvasSizeSwitcer() {
     const switcher = document.getElementById('size-switcher');
     const canvas = document.getElementById('canvas-overlay');
+    const frameContainer = document.getElementById('frame-container');
+    const preview = frameContainer.children[frameContainer.children.length - 1].children[0];
     switcher.addEventListener('click', (e) => {
       switch (e.target.getAttribute('data')) {
         case '32':
@@ -345,6 +350,9 @@ export default class App {
             it.classList.remove('active');
           });
           e.target.classList.add('active');
+          preview.setAttribute('width', this.canvasSize);
+          preview.setAttribute('height', this.canvasSize);
+          this.tools.sizeValue='32';
           break;
         case '64':
           this.canvasSize = '64';
@@ -352,6 +360,9 @@ export default class App {
             it.classList.remove('active');
           });
           e.target.classList.add('active');
+          preview.setAttribute('width', this.canvasSize);
+          preview.setAttribute('height', this.canvasSize);
+          this.tools.sizeValue='64';
           break;
         case '128':
           this.canvasSize = '128';
@@ -359,11 +370,17 @@ export default class App {
             it.classList.remove('active');
           });
           e.target.classList.add('active');
+          preview.setAttribute('width', this.canvasSize);
+          preview.setAttribute('height', this.canvasSize);
+          this.tools.sizeValue='128';
           break;
         default:
       }
       canvas.setAttribute('width', this.canvasSize);
       canvas.setAttribute('height', this.canvasSize);
+      // ctxpreview.setAttribute('width', this.canvasSize);
+      // ctxpreview.setAttribute('height', this.canvasSize);
+      this.drawPreview();
     });
   }
 }
