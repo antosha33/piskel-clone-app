@@ -1,10 +1,10 @@
-function drawLine(x1, y1, x2, y2, color, ctx) {
-  function setPixel(rgb, x, y, ctx) {
-    const imgData = ctx.createImageData(1, 1);  
-    imgData.data[0] = rgb.r;
-    imgData.data[1] = rgb.g;
-    imgData.data[2] = rgb.b;
-    imgData.data[3] = 255;
+function drawLine(x1, y1, x2, y2, color, ctx, toolSize) {
+  function setPixel(rgb, x, y) {
+    const imgData = ctx.createImageData(toolSize, toolSize);
+    const rgbKeys = Object.keys(rgb);
+    for (let i = 0; i < imgData.data.length; i += 1) {
+      imgData.data[i] = rgb[rgbKeys[i % 4]];
+    }
     ctx.putImageData(imgData, x, y);
   }
   const delX = Math.abs(x2 - x1);
@@ -29,8 +29,6 @@ function drawLine(x1, y1, x2, y2, color, ctx) {
   }
 }
 
-
-
 function getCoord(elem) {
   const canv = document.getElementById('canvas-overlay');
   const canvWidth = +getComputedStyle(canv).width.slice(0, -2);
@@ -48,20 +46,25 @@ function rgbToHex(r, g, b) {
 }
 
 
-function hexToRgb(hex){
-if (hex.substr(0, 1) == '#') hex = hex.substr(1);
+function hexToRgb(hex) {
+  if (hex.substr(0, 1) === '#') hex = hex.substr(1);
 
-var r, g, b;
+  let r;
+  let g;
+  let b;
 
-r = hex.substr(0, 2);
-g = hex.substr(2, 2);
-b = hex.substr(4, 2);
+  r = hex.substr(0, 2);
+  g = hex.substr(2, 2);
+  b = hex.substr(4, 2);
 
-r = parseInt(r, 16);
-g = parseInt(g, 16);
-b = parseInt(b, 16);
+  r = parseInt(r, 16);
+  g = parseInt(g, 16);
+  b = parseInt(b, 16);
+  const a = 255;
 
-return {r: r, g: g, b: b};
+  return {
+    r, g, b, a,
+  };
 }
 
 
@@ -70,14 +73,13 @@ function getCtx(id) {
   const ctx = canv.getContext('2d');
   return {
     canv, ctx,
-  }
+  };
 }
-
 
 export {
   getCoord,
   rgbToHex,
   getCtx,
   drawLine,
-  hexToRgb
+  hexToRgb,
 };
