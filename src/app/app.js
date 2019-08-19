@@ -7,7 +7,7 @@ import Tools from './tools/tools';
 export default class App {
   constructor() {
     this.frames = [];
-    this.canvasSize = '32'
+    this.canvasSize = '32';
     this.stateIsChanged = false;
     App.startAnimation();
     this.frameManager();
@@ -20,25 +20,24 @@ export default class App {
   }
 
   drawPreview() {
-    console.log(this.tools.size);
     const canv = document.getElementById('canvas-overlay');
     const frameContainer = document.getElementById('frame-container');
     const preview = frameContainer.children[frameContainer.children.length - 1].children[0];
     const ctxpreview = preview.getContext('2d');
     const newframeButton = document.getElementById('new-frame');
-    ctxpreview.clearRect(0, 0,this.canvasSize,this.canvasSize);
+    ctxpreview.clearRect(0, 0, this.canvasSize, this.canvasSize);
     const moveListener = () => {
-      ctxpreview.clearRect(0, 0,this.canvasSize, this.canvasSize);
+      ctxpreview.clearRect(0, 0, this.canvasSize, this.canvasSize);
       ctxpreview.drawImage(canv, 0, 0);
-    }
+    };
     const clickListener = () => {
       ctxpreview.clearRect(0, 0, this.canvasSize, this.canvasSize);
       ctxpreview.drawImage(canv, 0, 0);
-    }
+    };
     const mousedownListener = () => {
       ctxpreview.clearRect(0, 0, this.canvasSize, this.canvasSize);
       ctxpreview.drawImage(canv, 0, 0);
-    }
+    };
     canv.addEventListener('mousemove', moveListener);
     canv.addEventListener('click', clickListener);
     canv.addEventListener('mousedown', mousedownListener);
@@ -233,11 +232,7 @@ export default class App {
 
       function onfullscreenchange() {
         if (!document.fullscreenElement) {
-          animationCanvas.style.transform = 'scale(0.25)';
-          animationCanvas.style.position = 'absolute';
           animationCanvas.style.display = 'block';
-          animationCanvas.style.top = '-262px';
-          animationCanvas.style.left = '-260px';
           animationCanvas.parentNode.style.backgroundColor = 'grey';
         }
       }
@@ -247,19 +242,21 @@ export default class App {
 
   static exportToGif() {
     const exportToGif = document.getElementById('export');
+    const backgroundToWhite = (canv) => {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.setAttribute('width', 500);
+      tempCanvas.setAttribute('height', 500);
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.imageSmoothingEnabled = false;
+      tempCtx.fillStyle = 'white';
+      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+      tempCtx.drawImage(canv, 0, 0, 500, 500);
+
+      return tempCtx;
+    }
     exportToGif.addEventListener('click', () => {
       const framesElement = document.getElementById('frame-container').children;
       const arrayFrames = Array.from(framesElement);
-      function backgroundToWhite(canv) {
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.setAttribute('width', '704px');
-        tempCanvas.setAttribute('height', '704px');
-        const tempCtx = tempCanvas.getContext('2d');
-        tempCtx.fillStyle = 'white';
-        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-        tempCtx.drawImage(canv, 0, 0);
-        return tempCtx;
-      }
       const somm = new GIFEncoder();
       somm.setRepeat(0);
       somm.setDelay(500);
@@ -280,6 +277,7 @@ export default class App {
       objToLocal.color = this.color;
       objToLocal.secondaryColor = this.secondaryColor;
       objToLocal.frames = [];
+      objToLocal.size = this.canvasSize;
       const framesElement = document.getElementById('frame-container').children;
       const arrayFrames = Array.from(framesElement);
       arrayFrames.forEach((el) => {
@@ -316,7 +314,7 @@ export default class App {
           };
           i += 1;
           frame.setAttribute('class', 'preview-canvas canvas-preview-item');
-          frame.innerHTML = `<canvas width="704px" height="704px"></canvas>
+          frame.innerHTML = `<canvas width=${stateObject.size} height=${stateObject.size}></canvas>
             <div class="frame-manager">
             <div class="delete"></div>
             <div class="copy"></div>
@@ -337,11 +335,24 @@ export default class App {
     });
   }
 
+  static reset() {
+    const frameContainer = document.getElementById('frame-container');
+    const preview = frameContainer.children;
+    for (let i = 1; i < preview.length; i += 1) {
+      preview[i].remove();
+    }
+  }
+
   canvasSizeSwitcer() {
     const switcher = document.getElementById('size-switcher');
     const canvas = document.getElementById('canvas-overlay');
+    const animationCanvas = document.getElementById('animation-canvas');
     const frameContainer = document.getElementById('frame-container');
     const preview = frameContainer.children[frameContainer.children.length - 1].children[0];
+    function setSize(elem, size) {
+      elem.setAttribute('width', size);
+      elem.setAttribute('height', size);
+    }
     switcher.addEventListener('click', (e) => {
       switch (e.target.getAttribute('data')) {
         case '32':
@@ -350,9 +361,10 @@ export default class App {
             it.classList.remove('active');
           });
           e.target.classList.add('active');
-          preview.setAttribute('width', this.canvasSize);
-          preview.setAttribute('height', this.canvasSize);
-          this.tools.sizeValue='32';
+          setSize(preview, this.canvasSize);
+          setSize(animationCanvas, this.canvasSize);
+          this.tools.sizeValue = '32';
+          App.reset();
           break;
         case '64':
           this.canvasSize = '64';
@@ -360,9 +372,10 @@ export default class App {
             it.classList.remove('active');
           });
           e.target.classList.add('active');
-          preview.setAttribute('width', this.canvasSize);
-          preview.setAttribute('height', this.canvasSize);
-          this.tools.sizeValue='64';
+          setSize(preview, this.canvasSize);
+          setSize(animationCanvas, this.canvasSize);
+          this.tools.sizeValue = '64';
+          App.reset();
           break;
         case '128':
           this.canvasSize = '128';
@@ -370,16 +383,14 @@ export default class App {
             it.classList.remove('active');
           });
           e.target.classList.add('active');
-          preview.setAttribute('width', this.canvasSize);
-          preview.setAttribute('height', this.canvasSize);
-          this.tools.sizeValue='128';
+          setSize(preview, this.canvasSize);
+          setSize(animationCanvas, this.canvasSize);
+          this.tools.sizeValue = '128';
+          App.reset();
           break;
         default:
       }
-      canvas.setAttribute('width', this.canvasSize);
-      canvas.setAttribute('height', this.canvasSize);
-      // ctxpreview.setAttribute('width', this.canvasSize);
-      // ctxpreview.setAttribute('height', this.canvasSize);
+      setSize(canvas, this.canvasSize);
       this.drawPreview();
     });
   }
