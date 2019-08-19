@@ -10,6 +10,7 @@ import {
   toolPicker,
 } from './toolPicker';
 
+
 export default class Tools {
   constructor() {
     this.currentTool = 'pen';
@@ -239,8 +240,8 @@ export default class Tools {
       canvContainer.addEventListener('click', (e) => {
         const { x, y } = getCoord(e);
         const color = ctx.getImageData(x, y, 1, 1).data;
-        console.log(color);
         this.color = `#${(`000000${rgbToHex(color[0], color[1], color[2])}`).slice(-6)}`;
+        this.localStorage.mainColor = this.color;
         colors.children[0].value = this.color;
       });
     }

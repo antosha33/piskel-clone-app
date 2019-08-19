@@ -17,6 +17,8 @@ export default class App {
     App.exportToGif();
     this.tools = new Tools();
     this.frames = new Frames(this.canvasSize);
+    this.saveToLocalStorage();
+    this.restoreFromLocalStorage();
   }
 
   static startAnimation() {
@@ -91,7 +93,8 @@ export default class App {
           frames.appendChild(frame);
         });
         this.flag = true;
-        this.drawPreview();
+        const arr = Array.from(frames.children)
+        this.frames.activeFrame(arr[i], arr, false);
       }
     }
   }

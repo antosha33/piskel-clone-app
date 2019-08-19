@@ -13,7 +13,7 @@ export default class Frames {
     this.canvasSize = newSize;
   }
 
-  drawPreview(el) {
+  drawPreview(el, fromLocal=true) {
     const canv = document.getElementById('canvas-overlay');
     const frameContainer = document.getElementById('frame-container');
     const preview = frameContainer.children[frameContainer.children.length - 1].children[0];
@@ -42,8 +42,8 @@ export default class Frames {
     canv.addEventListener('click', clickListener);
     canv.addEventListener('mousedown', mousedownListener);
 
+
     frameContainer.addEventListener('mousedown', () => {
-      console.log(1);
       canv.removeEventListener('mousemove', moveListener);
       canv.removeEventListener('click', clickListener);
       canv.removeEventListener('mousedown', mousedownListener);
@@ -54,6 +54,16 @@ export default class Frames {
       canv.removeEventListener('click', clickListener);
       canv.removeEventListener('mousedown', mousedownListener);
     });
+
+    if(localStorage.getItem('currentState') && fromLocal){
+      console.log('111');
+      canv.removeEventListener('mousemove', moveListener);
+      canv.removeEventListener('click', clickListener);
+      canv.removeEventListener('mousedown', mousedownListener);
+    };
+    
+
+    
   }
 
   frameManager() {
@@ -93,7 +103,7 @@ export default class Frames {
       frameContainer.appendChild(frame);
       mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
       this.stateIsChanged = true;
-      this.activeFrame(frame, arrOfFrames);
+      this.activeFrame(frame, arrOfFrames, false);
       this.framePicker();
     });
   }
@@ -110,7 +120,7 @@ export default class Frames {
             ind = index + 1;
           }
           it.remove();
-          this.activeFrame(arr[ind], arr);
+          this.activeFrame(arr[ind], arr, false);
         }
       });
     }
@@ -121,12 +131,12 @@ export default class Frames {
     const arr = Array.from(frames.children);
     frames.addEventListener('click', (e) => {
       if (e.target.parentNode.classList.contains('preview-canvas')) {
-        this.activeFrame(e.target.parentNode, arr);
+        this.activeFrame(e.target.parentNode, arr, false);
       }
     });
   }
 
-  activeFrame(el, frames) {
+  activeFrame(el, frames, fromLocal=true) {
     const { ctx } = getCtx('canvas-overlay');
     const prevCtx = el.children[0];
     if (prevCtx.tagName === 'CANVAS') {
@@ -136,7 +146,7 @@ export default class Frames {
       el.style.borderColor = 'yellow';
       ctx.clearRect(0, 0, this.canvasSize, this.canvasSize);
       ctx.drawImage(prevCtx, 0, 0);
-      this.drawPreview(el);
+      this.drawPreview(el, fromLocal);
     }
   }
 
@@ -150,7 +160,7 @@ export default class Frames {
         const ctxCopy = copy.children[0].getContext('2d');
         ctxCopy.drawImage(canvForCopy, 0, 0);
         frames.insertBefore(copy, frames.children[index + 1]);
-        this.activeFrame(copy, arr);
+        this.activeFrame(copy, arr, false);
       }
       return el;
     }, 0);
@@ -199,7 +209,7 @@ export default class Frames {
         dragStartCtx.drawImage(tempCanvas, 0, 0);
         evt.target.parentNode.parentNode.setAttribute('draggable', 'false');
         dragStartCanv.parentNode.setAttribute('draggable', 'false');
-        this.activeFrame(evt.target.parentNode, arr);
+        this.activeFrame(evt.target.parentNode, arr, false);
       }
     };
 
