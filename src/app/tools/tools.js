@@ -53,6 +53,7 @@ export default class Tools {
       isMouseDown = true;
       x = getCoord(e).x;
       y = getCoord(e).y;
+      draw(e);
     });
     canvcontainer.addEventListener('mouseup', () => {
       isMouseDown = false;
