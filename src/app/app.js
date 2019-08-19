@@ -105,7 +105,7 @@ export default class App {
 
   static reset() {
     const frameContainer = document.getElementById('frame-container');
-    const preview = frameContainer.children;
+    const preview = Array.from(frameContainer.children);
     for (let i = 1; i < preview.length; i += 1) {
       preview[i].remove();
     }
@@ -179,7 +179,7 @@ export default class App {
       tempCtx.drawImage(canv, 0, 0, 500, 500);
 
       return tempCtx;
-    }
+    };
     exportToGif.addEventListener('click', () => {
       const framesElement = document.getElementById('frame-container').children;
       const arrayFrames = Array.from(framesElement);
@@ -217,5 +217,4 @@ export default class App {
       window.addEventListener('fullscreenchange', onfullscreenchange);
     });
   }
-
 }
