@@ -20,6 +20,8 @@
                 <div class="color-select" id="color-select"></div>
                 <div class="paint-bucket" id="paint-bucket"></div>
                 <div class="eraser" id="eraser"></div>
+                <div class="circle" id="circle"></div>
+                <div class="line" id="line"></div>
                 <div class="colors">
                     <div class="colors-container" id="colors-container">
                             <input class="primary" type="color">
@@ -46,6 +48,7 @@
             <div class="canvas-container" id="canvas-container">
                 <div class="cursor" id="cursor"></div>
                 <canvas id="canvas-overlay" class="canvas-overlay" height = "32" width="32"></canvas>
+                <canvas id="additional-canvas" width="32" height="32" style="z-index: -1;"></canvas>
             </div>
           </div>
         <div class="animation" id="animation">

@@ -32,6 +32,11 @@ function toolPicker() {
         setTool();
         this.eraser();
         break;
+      case 'circle':
+          this.currentTool = 'circle';
+          setTool();
+          this.drawCircle();
+          break;
       default:
     }
   }

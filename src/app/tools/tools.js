@@ -4,6 +4,7 @@ import {
   hexToRgb,
   drawLine,
   rgbToHex,
+  circle,
 } from '../utils';
 
 import {
@@ -230,6 +231,13 @@ export default class Tools {
     });
   }
 
+  drawCircle(){
+
+  }
+
+
+  
+
   colorPicker() {
     if (this.currentTool === 'color-select') {
       const canvContainer = document.getElementById('canvas-container');
@@ -246,6 +254,7 @@ export default class Tools {
       });
     }
   }
+
 
   colorPallete() {
     const scope = this;
