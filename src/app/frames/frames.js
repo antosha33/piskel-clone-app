@@ -13,7 +13,7 @@ export default class Frames {
     this.canvasSize = newSize;
   }
 
-  drawPreview(el, fromLocal=true) {
+  drawPreview(el, fromLocal = true) {
     const canv = document.getElementById('canvas-overlay');
     const frameContainer = document.getElementById('frame-container');
     const preview = frameContainer.children[frameContainer.children.length - 1].children[0];
@@ -55,15 +55,11 @@ export default class Frames {
       canv.removeEventListener('mousedown', mousedownListener);
     });
 
-    if(localStorage.getItem('currentState') && fromLocal){
-      console.log('111');
+    if (localStorage.getItem('currentState') && fromLocal) {
       canv.removeEventListener('mousemove', moveListener);
       canv.removeEventListener('click', clickListener);
       canv.removeEventListener('mousedown', mousedownListener);
     };
-    
-
-    
   }
 
   frameManager() {
@@ -131,12 +127,13 @@ export default class Frames {
     const arr = Array.from(frames.children);
     frames.addEventListener('click', (e) => {
       if (e.target.parentNode.classList.contains('preview-canvas')) {
+        console.log('111');
         this.activeFrame(e.target.parentNode, arr, false);
       }
     });
   }
 
-  activeFrame(el, frames, fromLocal=true) {
+  activeFrame(el, frames, fromLocal = true) {
     const { ctx } = getCtx('canvas-overlay');
     const prevCtx = el.children[0];
     if (prevCtx.tagName === 'CANVAS') {
@@ -164,6 +161,7 @@ export default class Frames {
       }
       return el;
     }, 0);
+    this.framePicker();
   }
 
   dragFrame() {
