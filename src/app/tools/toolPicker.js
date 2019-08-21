@@ -33,10 +33,10 @@ function toolPicker() {
         this.eraser();
         break;
       case 'circle':
-          this.currentTool = 'circle';
-          setTool();
-          this.drawCircle();
-          break;
+        this.currentTool = 'circle';
+        setTool();
+        this.drawCircle();
+        break;
       default:
     }
   }

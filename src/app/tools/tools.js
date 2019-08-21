@@ -242,27 +242,31 @@ export default class Tools {
     let x1;
     let y1;
     let r;
-    addCanv.style.zIndex = '10';
-    addCanv.addEventListener('mousedown', (e) => {
+    const mousedownEnvent = (e) => {
       isMouseDown = true;
+      addCanv.style.zIndex = '10';
       x = getCoord(e).x;
       y = getCoord(e).y;
-    });
-    addCanv.addEventListener('mouseup', () => {
-      isMouseDown = false;
-      addCanv.style.zIndex = '-1';
-      ctx.drawImage(addCanv, 0, 0);
-    });
-    addCanv.addEventListener('mousemove', (e) => {
-      if (isMouseDown) {
+    };
+    const mousemoveEvent = (e) => {
+      if (isMouseDown && this.currentTool === 'circle') {
         x1 = getCoord(e).x;
         y1 = getCoord(e).y;
         r = Math.floor(Math.sqrt(Math.pow((x1 - x), 2) + Math.pow((y1 - y), 2)));
         if (this.currentTool === 'circle') {
           circle(x, y, r, this.color, addCtx, canv);
         }
-      };
-    });
+      }
+    };
+    const mouseupEvent = () => {
+      isMouseDown = false;
+      addCanv.style.zIndex = '-1';
+      ctx.drawImage(addCanv, 0, 0);
+      addCtx.clearRect(0, 0, this.canvasSize, this.canvasSize );
+    }
+    canv.addEventListener('mousedown', mousedownEnvent);
+    addCanv.addEventListener('mouseup', mouseupEvent);
+    addCanv.addEventListener('mousemove', mousemoveEvent);
   }
 
   colorPicker() {
