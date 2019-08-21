@@ -119,6 +119,7 @@ export default class App {
     const canvas = document.getElementById('canvas-overlay');
     const animationCanvas = document.getElementById('animation-canvas');
     const frameContainer = document.getElementById('frame-container');
+    const additionalCanvas = document.getElementById('additional-canvas');
     const preview = frameContainer.children[frameContainer.children.length - 1].children[0];
     function setSize(elem, size) {
       elem.setAttribute('width', size);
@@ -135,6 +136,7 @@ export default class App {
           e.target.classList.add('active');
           setSize(preview, this.canvasSize);
           setSize(animationCanvas, this.canvasSize);
+          setSize(additionalCanvas, this.canvasSize);
           this.tools.sizeValue = '32';
           App.reset();
           break;
@@ -147,6 +149,7 @@ export default class App {
           e.target.classList.add('active');
           setSize(preview, this.canvasSize);
           setSize(animationCanvas, this.canvasSize);
+          setSize(additionalCanvas, this.canvasSize);
           this.tools.sizeValue = '64';
           App.reset();
           break;
@@ -159,6 +162,7 @@ export default class App {
           e.target.classList.add('active');
           setSize(preview, this.canvasSize);
           setSize(animationCanvas, this.canvasSize);
+          setSize(additionalCanvas, this.canvasSize);
           this.tools.sizeValue = '128';
           App.reset();
           break;

@@ -37,6 +37,11 @@ function toolPicker() {
         setTool();
         this.drawCircle();
         break;
+      case 'line':
+        this.currentTool = 'line';
+        setTool();
+        this.drawLine();
+        break;
       default:
     }
   }

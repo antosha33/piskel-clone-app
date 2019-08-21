@@ -262,11 +262,47 @@ export default class Tools {
       isMouseDown = false;
       addCanv.style.zIndex = '-1';
       ctx.drawImage(addCanv, 0, 0);
-      addCtx.clearRect(0, 0, this.canvasSize, this.canvasSize );
-    }
+      addCtx.clearRect(0, 0, this.canvasSize, this.canvasSize);
+    };
     canv.addEventListener('mousedown', mousedownEnvent);
     addCanv.addEventListener('mouseup', mouseupEvent);
     addCanv.addEventListener('mousemove', mousemoveEvent);
+  }
+
+  drawLine() {
+    const addCanv = getCtx('additional-canvas').canv;
+    const addCtx = getCtx('additional-canvas').ctx;
+    const { canv, ctx } = getCtx('canvas-overlay');
+    let x;
+    let y;
+    let x1;
+    let y1;
+    let isMouseDown;
+    const mousedownEvent = (e) => {
+      isMouseDown = true;
+      addCanv.style.zIndex = '10';
+      x = getCoord(e).x;
+      y = getCoord(e).y;
+    };
+
+    const mousemoveEvent = (e) => {
+      if (isMouseDown && this.currentTool === 'line') {
+        x1 = getCoord(e).x;
+        y1 = getCoord(e).y;
+        const color = hexToRgb(this.color);
+        addCtx.clearRect(0, 0, this.canvasSize, this.canvasSize);
+        drawLine(x, y, x1, y1, color, addCtx, this.toolSize);
+      }
+    };
+    const mouseupEvent = () => {
+      isMouseDown = false;
+      addCanv.style.zIndex = '-1';
+      ctx.drawImage(addCanv, 0, 0);
+      addCtx.clearRect(0, 0, this.canvasSize, this.canvasSize);
+    };
+    addCanv.addEventListener('mouseup', mouseupEvent);
+    addCanv.addEventListener('mousemove', mousemoveEvent);
+    canv.addEventListener('mousedown', mousedownEvent);
   }
 
   colorPicker() {
@@ -280,7 +316,6 @@ export default class Tools {
         const { x, y } = getCoord(e);
         const color = ctx.getImageData(x, y, 1, 1).data;
         this.color = `#${(`000000${rgbToHex(color[0], color[1], color[2])}`).slice(-6)}`;
-        this.localStorage.mainColor = this.color;
         colors.children[0].value = this.color;
       });
     }
