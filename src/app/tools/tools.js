@@ -357,11 +357,12 @@ export default class Tools {
     let x1;
     let y1;
     let isMouseDown = false;
-    const data = ctx.getImageData(0, 0, this.canvasSize, this.canvasSize);
+    let data;
     const mousedownEvent = (e) => {
       isMouseDown = true;
       x1 = getCoord(e).x;
       y1 = getCoord(e).y;
+      data = ctx.getImageData(0, 0, this.canvasSize, this.canvasSize);
     };
     const mousemoveEvent = (e) => {
       if (isMouseDown && this.currentTool === 'move') {
