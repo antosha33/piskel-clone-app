@@ -7,17 +7,22 @@
     <title>Document</title>
 </head>
 <body>
-    <div class="landing-wrapper">
+    <div class="landing-wrapper" id="landing">
         <header>
             <h1>Welcome to the Piskel clone App</h1>
         </header>
         <main>
-            <aside><h2>This in an online editor which allows you to make diffrent sprites and pixel arts</h2></aside>
-            <section>
-                    <img src="<%=require('./img/app.jpg')%>">
+            <aside><h2>This in an online editor which allows you to make different sprites and pixel arts</h2><button class="create" id="create">Create sprite</button></aside>
+            <section class="image"> <img src="<%=require('./img/app.jpg')%>"></section>
+            <section class="examples">
+              <div class="letter"><img src="<%=require('./img/h.gif')%>"></div>
+              <div class="letter"><img src="<%=require('./img/e.gif')%>"></div>
+              <div class="letter"><img src="<%=require('./img/l.gif')%>"></div>
+              <div class="letter"><img src="<%=require('./img/l2.gif')%>"></div>
+              <div class="letter"><img src="<%=require('./img/o.gif')%>"></div>
             </section>
         </main>
-        <footer></footer>
+        <footer><div class="contacts"> <p>Contacts: <a href="https://github.com/antosha33">github.com/antosha33</a></p>  </div></footer>
     </div>
     <div class="container">
         <div class="menu">
