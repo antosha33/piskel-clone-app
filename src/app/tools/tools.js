@@ -232,8 +232,10 @@ export default class Tools {
     };
     canvContainer.addEventListener('click', paint);
     const pb = document.getElementById('tools');
-    pb.addEventListener('click', () => {
-      canvContainer.removeEventListener('click', paint);
+    pb.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'P' && e.target.classList.contains('size') === false) {
+        canvContainer.removeEventListener('click', paint);
+      }
     });
   }
 
@@ -273,9 +275,11 @@ export default class Tools {
     addCanv.addEventListener('mouseup', mouseupEvent);
     addCanv.addEventListener('mousemove', mousemoveEvent);
     const pb = document.getElementById('tools');
-    pb.addEventListener('click', () => {
-      canv.removeEventListener('mousedown', mousedownEnvent);
-      addCanv.removeEventListener('mousemove', mousemoveEvent);
+    pb.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'P' && e.target.classList.contains('size') === false) {
+        canv.removeEventListener('mousedown', mousedownEnvent);
+        addCanv.removeEventListener('mousemove', mousemoveEvent);
+      }
     });
   }
 
@@ -314,9 +318,11 @@ export default class Tools {
     addCanv.addEventListener('mousemove', mousemoveEvent);
     canv.addEventListener('mousedown', mousedownEvent);
     const pb = document.getElementById('tools');
-    pb.addEventListener('click', () => {
-      canv.removeEventListener('mousedown', mousedownEvent);
-      addCanv.removeEventListener('mousemove', mousemoveEvent);
+    pb.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'P' && e.target.classList.contains('size') === false) {
+        canv.removeEventListener('mousedown', mousedownEvent);
+        addCanv.removeEventListener('mousemove', mousemoveEvent);
+      }
     });
   }
 

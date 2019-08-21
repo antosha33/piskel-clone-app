@@ -37,8 +37,7 @@ module.exports = {
       {
         test: /\.(gif|png|jpe?g)$/,
         loader: ['file-loader'],
-      }
-
+      },
     ],
   },
   plugins: [new HtmlWebpackPlugin({
