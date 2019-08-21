@@ -11,6 +11,7 @@ import {
   toolPicker,
 } from './toolPicker';
 
+import Frames from '../frames/frames';
 
 export default class Tools {
   constructor() {
@@ -27,7 +28,6 @@ export default class Tools {
     this.drawPen();
     this.sizePicker();
     this.colorPallete();
-
     toolPicker.call(this);
   }
 
@@ -107,7 +107,7 @@ export default class Tools {
 
   paintBucket() {
     const canvContainer = document.getElementById('canvas-overlay');
-    canvContainer.addEventListener('click', (e) => {
+    const paint = (e) => {
       const { ctx } = getCtx('canvas-overlay');
       document.getElementById('cursor').style.display = 'none';
       const { x, y } = getCoord(e);
@@ -229,6 +229,11 @@ export default class Tools {
         contexts.drawing.putImageData(colorLayerData, 0, 0, 0, 0,
           drawingAreaWidth, drawingAreaHeight);
       }
+    };
+    canvContainer.addEventListener('click', paint);
+    const pb = document.getElementById('tools');
+    pb.addEventListener('click', () => {
+      canvContainer.removeEventListener('click', paint);
     });
   }
 
@@ -267,6 +272,11 @@ export default class Tools {
     canv.addEventListener('mousedown', mousedownEnvent);
     addCanv.addEventListener('mouseup', mouseupEvent);
     addCanv.addEventListener('mousemove', mousemoveEvent);
+    const pb = document.getElementById('tools');
+    pb.addEventListener('click', () => {
+      canv.removeEventListener('mousedown', mousedownEnvent);
+      addCanv.removeEventListener('mousemove', mousemoveEvent);
+    });
   }
 
   drawLine() {
@@ -303,6 +313,11 @@ export default class Tools {
     addCanv.addEventListener('mouseup', mouseupEvent);
     addCanv.addEventListener('mousemove', mousemoveEvent);
     canv.addEventListener('mousedown', mousedownEvent);
+    const pb = document.getElementById('tools');
+    pb.addEventListener('click', () => {
+      canv.removeEventListener('mousedown', mousedownEvent);
+      addCanv.removeEventListener('mousemove', mousemoveEvent);
+    });
   }
 
   colorPicker() {
@@ -321,6 +336,47 @@ export default class Tools {
     }
   }
 
+  rotate() {
+    const { ctx, canv } = getCtx('canvas-overlay');
+    let img = new Image();
+    img.src = canv.toDataURL();
+    img.onload = () => {
+      ctx.clearRect(0, 0, this.canvasSize, this.canvasSize);
+      ctx.save();
+      ctx.translate(this.canvasSize, 0);
+      ctx.rotate(90 * Math.PI / 180);
+      ctx.drawImage(img, 0, 0);
+      ctx.restore();
+      img = null;
+      canv.dispatchEvent(new Event('mousemove'));
+    };
+  }
+
+  move() {
+    const { ctx, canv } = getCtx('canvas-overlay');
+    let x1;
+    let y1;
+    let isMouseDown = false;
+    const data = ctx.getImageData(0, 0, this.canvasSize, this.canvasSize);
+    const mousedownEvent = (e) => {
+      isMouseDown = true;
+      x1 = getCoord(e).x;
+      y1 = getCoord(e).y;
+    };
+    const mousemoveEvent = (e) => {
+      if (isMouseDown && this.currentTool === 'move') {
+        ctx.clearRect(0, 0, this.canvasSize, this.canvasSize);
+        const { x, y } = getCoord(e);
+        ctx.putImageData(data, x - x1, y - y1);
+      }
+    };
+    const mouseupEvent = () => {
+      isMouseDown = false;
+    };
+    canv.addEventListener('mousedown', mousedownEvent);
+    canv.addEventListener('mousemove', mousemoveEvent);
+    canv.addEventListener('mouseup', mouseupEvent);
+  }
 
   colorPallete() {
     const scope = this;

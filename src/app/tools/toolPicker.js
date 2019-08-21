@@ -1,3 +1,5 @@
+import { getCtx } from '../utils';
+
 function toolPicker() {
   const tools = document.getElementById('tools');
   const child = Array.from(tools.children);
@@ -41,6 +43,16 @@ function toolPicker() {
         this.currentTool = 'line';
         setTool();
         this.drawLine();
+        break;
+      case 'rotate':
+        this.currentTool = 'rotate';
+        setTool();
+        this.rotate();
+        break;
+      case 'move':
+        this.currentTool = 'move';
+        setTool();
+        this.move();
         break;
       default:
     }
