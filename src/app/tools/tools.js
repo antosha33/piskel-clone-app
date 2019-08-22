@@ -222,6 +222,7 @@ export default class Tools {
         paintAt(x, y);
         contexts.drawing.putImageData(colorLayerData, 0, 0, 0, 0,
           drawingAreaWidth, drawingAreaHeight);
+        canvContainer.dispatchEvent(new Event('mousemove'));
       }
     };
     canvContainer.addEventListener('click', paint);
@@ -322,7 +323,7 @@ export default class Tools {
 
   colorPicker() {
     if (this.currentTool === 'color-select') {
-      const canvContainer = document.getElementById('canvas-container');
+      const canvContainer = document.getElementById('canvas-overlay');
       const { ctx } = getCtx('canvas-overlay');
       const colors = document.getElementById('colors-container');
       const cursor = document.getElementById('cursor');
