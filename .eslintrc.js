@@ -15,6 +15,10 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
-    
+
   },
+  env: {
+    "jest": true,
+    "browser": true,
+  }
 };

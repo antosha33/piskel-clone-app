@@ -8,7 +8,7 @@
     "build": "webpack --mode production",
     "lint": "eslint ./src --fix",
     "eslint": "eslint ./src",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -29,9 +29,12 @@
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.18.0",
+    "eslint-plugin-jest": "^22.15.2",
     "file-loader": "^4.0.0",
     "html-webpack-plugin": "^3.2.0",
     "image-webpack-loader": "^5.0.0",
+    "jest": "^24.9.0",
+    "jest-canvas-mock": "^2.1.1",
     "node-sass": "^4.12.0",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
@@ -41,6 +44,7 @@
     "webpack-dev-server": "^3.7.2"
   },
   "dependencies": {
+    "canvas": "^2.6.0",
     "gifencoder": "^2.0.1"
   }
 }

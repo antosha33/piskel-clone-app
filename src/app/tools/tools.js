@@ -5,7 +5,7 @@ import {
   drawLine,
   rgbToHex,
   circle,
-} from '../utils';
+} from '../utils/utils';
 
 import toolPicker from './toolPicker';
 

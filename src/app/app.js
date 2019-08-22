@@ -11,15 +11,19 @@ export default class App {
     this.frames = [];
     this.canvasSize = '32';
     this.stateIsChanged = false;
-    App.startAnimation();
-    App.fullScreen();
     this.state = localStorage.getItem('currentState');
     this.flag = false;
-    App.exportToGif();
     this.tools = new Tools();
     this.frames = new Frames(this.canvasSize);
+  }
+
+  start() {
+    App.startAnimation();
+    App.fullScreen();
+    App.exportToGif();
     this.saveToLocalStorage();
     this.restoreFromLocalStorage();
+    this.canvasSizeSwitcer();
   }
 
   static startAnimation() {
@@ -38,7 +42,6 @@ export default class App {
     }
     animate();
   }
-
 
   saveToLocalStorage() {
     const addtols = document.getElementById('addstorage');

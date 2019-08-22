@@ -4,7 +4,7 @@ import App from './app/app';
 
 
 const app = new App();
-app.canvasSizeSwitcer();
+app.start();
 
 const create = document.getElementById('create');
 const lp = document.getElementById('landing');

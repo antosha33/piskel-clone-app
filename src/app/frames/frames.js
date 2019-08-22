@@ -1,4 +1,4 @@
-import { getCtx } from '../utils';
+import { getCtx } from '../utils/utils';
 
 
 export default class Frames {
