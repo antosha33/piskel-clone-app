@@ -115,6 +115,7 @@ export default class Tools {
       const drawingAreaWidth = this.canvasSize;
       const drawingAreaHeight = this.canvasSize;
       const curColor = hexToRgb(this.color);
+
       if (curColor.r === 0 && curColor.g === 0 && curColor.b === 0) curColor.b = 1;
       contexts.drawing = ctx;
       contexts.outline = ctx;
@@ -123,7 +124,7 @@ export default class Tools {
       const colorLayerData = contexts.drawing.getImageData(0, 0,
         drawingAreaWidth, drawingAreaHeight);
       function matchOutlineColor(r, g, b, a) {
-        return (r + g + b < 100 && a === 255);
+        return (r + g + b < 1 && a === 255);
       }
 
       function matchStartColor(pixelPos, startR, startG, startB) {
@@ -215,8 +216,7 @@ export default class Tools {
         const b = colorLayerData.data[pixelPos + 2];
         const a = colorLayerData.data[pixelPos + 3];
 
-        if ((r === curColor.r && g === curColor.g && b === curColor.b)
-          && (r === 0 && g === 0 && b === 0)) {
+        if (r === curColor.r && g === curColor.g && b === curColor.b) {
           return;
         }
         if (matchOutlineColor(r, g, b, a)) {
