@@ -8,6 +8,6 @@ app.canvasSizeSwitcer();
 
 const create = document.getElementById('create');
 const lp = document.getElementById('landing');
-create.addEventListener('click', ()=>{
+create.addEventListener('click', () => {
   lp.style.display = 'none';
-})
+});

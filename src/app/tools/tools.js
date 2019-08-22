@@ -7,11 +7,7 @@ import {
   circle,
 } from '../utils';
 
-import {
-  toolPicker,
-} from './toolPicker';
-
-import Frames from '../frames/frames';
+import toolPicker from './toolPicker';
 
 export default class Tools {
   constructor() {
@@ -54,8 +50,8 @@ export default class Tools {
     canvcontainer.addEventListener('mousemove', draw);
     canvcontainer.addEventListener('mousedown', (e) => {
       isMouseDown = true;
-      x = getCoord(e).x;
-      y = getCoord(e).y;
+      ({ x } = getCoord(e));
+      ({ y } = getCoord(e));
       draw(e);
     });
     canvcontainer.addEventListener('mouseup', () => {
@@ -110,7 +106,7 @@ export default class Tools {
     const paint = (e) => {
       const { ctx } = getCtx('canvas-overlay');
       document.getElementById('cursor').style.display = 'none';
-      const { x, y } = getCoord(e);
+      let { x, y } = getCoord(e);
       const contexts = {};
       const drawingAreaWidth = this.canvasSize;
       const drawingAreaHeight = this.canvasSize;
@@ -156,8 +152,6 @@ export default class Tools {
 
       function floodFill(startX, startY, startR, startG, startB) {
         let newPos;
-        let x;
-        let y;
         let pixelPos;
         let reachLeft;
         let reachRight;
@@ -252,14 +246,14 @@ export default class Tools {
     const mousedownEnvent = (e) => {
       isMouseDown = true;
       addCanv.style.zIndex = '10';
-      x = getCoord(e).x;
-      y = getCoord(e).y;
+      ({ x } = getCoord(e));
+      ({ y } = getCoord(e));
     };
     const mousemoveEvent = (e) => {
       if (isMouseDown && this.currentTool === 'circle') {
         x1 = getCoord(e).x;
         y1 = getCoord(e).y;
-        r = Math.floor(Math.sqrt(Math.pow((x1 - x), 2) + Math.pow((y1 - y), 2)));
+        r = Math.floor(Math.sqrt((x1 - x) * (x1 - x) + (y1 - y) * (y1 - y)));
         if (this.currentTool === 'circle') {
           circle(x, y, r, this.color, addCtx, canv);
         }
@@ -295,8 +289,8 @@ export default class Tools {
     const mousedownEvent = (e) => {
       isMouseDown = true;
       addCanv.style.zIndex = '10';
-      x = getCoord(e).x;
-      y = getCoord(e).y;
+      ({ x } = getCoord(e));
+      ({ y } = getCoord(e));
     };
 
     const mousemoveEvent = (e) => {

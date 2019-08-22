@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import LZW from '../assets/animation/LZWEncoder';
 import Neu from '../assets/animation/NeuQuant';
 import b64 from '../assets/animation/base64';
@@ -93,7 +94,7 @@ export default class App {
           frames.appendChild(frame);
         });
         this.flag = true;
-        const arr = Array.from(frames.children)
+        const arr = Array.from(frames.children);
         this.frames.activeFrame(arr[i], arr, false);
       }
     }
@@ -190,6 +191,7 @@ export default class App {
     exportToGif.addEventListener('click', () => {
       const framesElement = document.getElementById('frame-container').children;
       const arrayFrames = Array.from(framesElement);
+      // eslint-disable-next-line no-undef
       const somm = new GIFEncoder();
       somm.setRepeat(0);
       somm.setDelay(500);

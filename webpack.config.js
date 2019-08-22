@@ -9,7 +9,7 @@ module.exports = {
     './src/index.js'],
   output: {
     filename: 'app.bundle.js',
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'dist'),
   },
   devtool: 'source-map',
   module: {
@@ -41,6 +41,6 @@ module.exports = {
     ],
   },
   plugins: [new HtmlWebpackPlugin({
-    template: 'src/assets/index.html'
+    template: 'src/assets/index.html',
   })],
 };

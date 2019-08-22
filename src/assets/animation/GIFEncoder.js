@@ -1,3 +1,4 @@
+/* eslint-disable */
 GIFEncoder = function () {
   for (var i = 0, chr = {}; i < 256; i++) { chr[i] = String.fromCharCode(i); }
 

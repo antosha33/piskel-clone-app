@@ -1,5 +1,8 @@
 function hexToRgb(hex) {
-  if (hex.substr(0, 1) === '#') hex = hex.substr(1);
+  if (hex.substr(0, 1) === '#') {
+    // eslint-disable-next-line no-param-reassign
+    hex = hex.substr(1);
+  }
 
   let r;
   let g;
@@ -41,10 +44,12 @@ function drawLine(x1, y1, x2, y2, color, ctx, toolSize) {
     const error2 = error * 2;
     if (error2 > -delY) {
       error -= delY;
+      // eslint-disable-next-line no-param-reassign
       x1 += signForX;
     }
     if (error2 < delX) {
       error += delX;
+      // eslint-disable-next-line no-param-reassign
       y1 += signForY;
     }
   }
@@ -71,15 +76,21 @@ function circle(X1, Y1, R, color, ctx, canvas) {
     putPixel(X1 - x, Y1 - y, C);
     error = 2 * (delta + y) - 1;
     if (delta < 0 && error <= 0) {
-      delta += 2 * ++x + 1; continue
+      // eslint-disable-next-line no-plusplus
+      delta += 2 * ++x + 1;
+      // eslint-disable-next-line no-continue
+      continue;
     }
     error = 2 * (delta - x) - 1;
     if (delta > 0 && error > 0) {
-      delta += 1 - 2 * --y; continue;
+      // eslint-disable-next-line no-plusplus
+      delta += 1 - 2 * --y;
+      // eslint-disable-next-line no-continue
+      continue;
     }
-    x++;
+    x += 1;
     delta += 2 * (x - y);
-    y--;
+    y -= 1;
   }
   ctx.putImageData(imageData, 0, 0);
 }
@@ -98,11 +109,9 @@ function getCoord(elem) {
 }
 
 function rgbToHex(r, g, b) {
+  // eslint-disable-next-line no-bitwise
   return ((r << 16) | (g << 8) | b).toString(16);
 }
-
-
-
 
 
 function getCtx(id) {
@@ -119,5 +128,5 @@ export {
   getCtx,
   drawLine,
   hexToRgb,
-  circle
+  circle,
 };

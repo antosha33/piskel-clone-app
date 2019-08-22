@@ -1,3 +1,4 @@
+/* eslint-disable */
 function encode64(input) {
   let output = '';
   let i = 0;

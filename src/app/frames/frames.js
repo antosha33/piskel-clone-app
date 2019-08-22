@@ -59,7 +59,7 @@ export default class Frames {
       canv.removeEventListener('mousemove', moveListener);
       canv.removeEventListener('click', clickListener);
       canv.removeEventListener('mousedown', mousedownListener);
-    };
+    }
   }
 
   frameManager() {
@@ -127,7 +127,6 @@ export default class Frames {
     const arr = Array.from(frames.children);
     frames.addEventListener('click', (e) => {
       if (e.target.parentNode.classList.contains('preview-canvas')) {
-        console.log('111');
         this.activeFrame(e.target.parentNode, arr, false);
       }
     });
@@ -138,6 +137,7 @@ export default class Frames {
     const prevCtx = el.children[0];
     if (prevCtx.tagName === 'CANVAS') {
       frames.forEach((it) => {
+        /* eslint no-param-reassign: ["error", { "props": false }] */
         it.style.borderColor = 'grey';
       });
       el.style.borderColor = 'yellow';

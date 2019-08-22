@@ -1,5 +1,3 @@
-import { getCtx } from '../utils';
-
 function toolPicker() {
   const tools = document.getElementById('tools');
   const child = Array.from(tools.children);
@@ -60,6 +58,4 @@ function toolPicker() {
   tools.addEventListener('click', setCurrentTool.bind(this));
 }
 
-export {
-  toolPicker,
-};
+export default toolPicker;
