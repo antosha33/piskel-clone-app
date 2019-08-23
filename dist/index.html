@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div class="landing-wrapper" id="landing">
+        <header>
+            <h1>Welcome to the Piskel clone App</h1>
+        </header>
+        <main>
+            <aside><h2>This in an online editor which allows you to make different sprites and pixel arts</h2><button class="create" id="create">Create sprite</button></aside>
+            <section class="image"> <img src="b227b2e6c4d3a4bf7c8da2e621af5eac.jpg"></section>
+            <section class="examples">
+              <div class="letter"><img src="dc06894bb9ff248c6cef8f8cdabf0009.gif"></div>
+              <div class="letter"><img src="26ebfe347d5a0b80979cc65c98ea745f.gif"></div>
+              <div class="letter"><img src="5d21e679186813850807857915825129.gif"></div>
+              <div class="letter"><img src="277e92c4290af7a4ca5a8ff6a4bd5a0d.gif"></div>
+              <div class="letter"><img src="5e63f766946f33888c49395266afc2e4.gif"></div>
+            </section>
+        </main>
+        <footer><div class="contacts"> <p>Contacts: <a href="https://github.com/antosha33">github.com/antosha33</a></p>  </div></footer>
+    </div>
+    <div class="container">
+        <div class="menu">
+            <div class="tools" id="tools">
+                <div class="tool-size" id="tool-size">
+                    <div data="one" class="size one active"></div>
+                    <div data="two" class="size two"></div>
+                    <div data="three" class="size three"></div>
+                        <div data="four" class="size four"></div>
+                </div>
+                <div class="pen active" id="pen"></div>
+                <div class="color-select" id="color-select"></div>
+                <div class="paint-bucket" id="paint-bucket"></div>
+                <div class="eraser" id="eraser"></div>
+                <div class="circle" id="circle"></div>
+                <div class="line" id="line"></div>
+                <div class="rotate" id="rotate"></div>
+                <div class="move" id="move"></div>
+                <div class="colors">
+                    <div class="colors-container" id="colors-container">
+                            <input class="primary" type="color">
+                            <input class="secondary" type="color">
+                            <p class="swap"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="frames">
+                <div class="preview" id="frame-container">
+                    <div class="preview-canvas canvas-preview-item"  data="test">
+                      <canvas width="32" height="32" id="preview-canvas"></canvas>
+                      <div class="frame-manager">
+                        <div class="delete" id="delete"></div>
+                        <div class="copy"></div>
+                        <div class="drag"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="new-frame" id="new-frame">Add frame</div>
+            </div>
+        </div>
+        <div class="palette">
+            <div class="canvas-container" id="canvas-container">
+                <div class="cursor" id="cursor"></div>
+                <canvas id="canvas-overlay" class="canvas-overlay" height = "32" width="32" style="z-index: 1;"></canvas>
+                <canvas id="additional-canvas" class="additional-canvas" width="32" height="32" style="z-index: -1;"></canvas>
+            </div>
+          </div>
+        <div class="animation" id="animation">
+          <div class="animation-container" id="animation-frames">
+                <div class="preview-canvas first">
+                        <canvas width="32" height="32" id="animation-canvas" ></canvas>                
+                </div>
+                <div class="fullscreen" id="fullscreen">Full Screen</div>
+                <div class="export" id="export">Export to Gif</div>
+                <div class="export" id="addstorage">Add to Storage</div>
+                <div class="export" id="clearstorage">Clear Storage</div>
+                <div class="size-switcher" id="size-switcher">
+                    <div class="size active" data="32">32x32</div>
+                    <div class="size" data="64">64x64</div>
+                    <div class="size"  data="128">128x128</div>
+                </div>
+          </div>
+        </div>
+    </div>
+<script type="text/javascript" src="app.bundle.js"></script></body>
+</html>
+    
